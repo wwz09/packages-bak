@@ -1,11 +1,9 @@
 local ucursor = require "luci.model.uci".cursor()
-local name = "vssr"
 local json = require "luci.jsonc"
-local proto = "socks"
-local auth_type = ucursor:get_first(name, 'socks5_proxy', 'enable_auth')
-local local_port = ucursor:get_first(name, 'socks5_proxy', 'local_port')
-local Socks_user = ucursor:get_first(name, 'socks5_proxy', 'Socks_user')
-local Socks_pass = ucursor:get_first(name, 'socks5_proxy', 'Socks_pass')
+local proto = arg[1] 
+local local_port = arg[2]
+local Socks_user = arg[3]
+local Socks_pass = arg[4]
 
 
 local v2ray = {
@@ -18,13 +16,13 @@ local v2ray = {
 		port = local_port,
 		protocol = proto,
 		settings = {
-			auth = (auth_type == '1') and "password" or "noauth",
-			accounts =(auth_type == "1") and  {
+			auth = "password",
+			accounts = {
 				{
-					user = (auth_type == '1') and Socks_user,
+					user = Socks_user,
 					pass = Socks_pass
 				}
-			} or nil,
+			}
 		}
 	},
 	-- 传出连接

@@ -2,14 +2,14 @@ local ucursor = require "luci.model.uci".cursor()
 local json = require "luci.jsonc"
 local server_section = arg[1]
 local proto = arg[2] 
-local local_port = arg[3]
-local host = arg[4]
+local local_port = arg[3]+1
+local socks_port = arg[4]
 
 local server = ucursor:get_all("vssr", server_section)
 
 local v2ray = {
   log = {
-    -- error = "/var/ssrplus.log",
+    -- error = "/var/vssr.log",
     loglevel = "warning"
   },
     -- 传入连接
@@ -25,6 +25,17 @@ local v2ray = {
             destOverride = { "http", "tls" }
         }
     },
+	-- 开启 socks 和 http 代理 
+	inboundDetour = (proto == "tcp") and {
+		{
+			protocol = "socks",
+			port = socks_port,
+			settings = {
+				auth = "noauth",
+				udp = true
+			}
+		}
+	} or nil,
     -- 传出连接
     outbound = {
         protocol = "vmess",
@@ -47,7 +58,7 @@ local v2ray = {
         streamSettings = {
             network = server.transport,
             security = (server.tls == '1') and "tls" or "none",
-            tlsSettings = {allowInsecure = (server.insecure == "1") and true or false,serverName=server.ws_host,},
+            tlsSettings = {allowInsecure = (server.insecure == "1") and true or false,},
             kcpSettings = (server.transport == "kcp") and {
               mtu = tonumber(server.mtu),
               tti = tonumber(server.tti),
@@ -60,7 +71,7 @@ local v2ray = {
                   type = server.kcp_guise
               }
           } or nil,
-             wsSettings = (server.transport == "ws") and (server.ws_path ~= nil or server.ws_host ~= nil) and {
+             wsSettings = (server.transport == "ws") and {
                 path = server.ws_path,
                 headers = (server.ws_host ~= nil) and {
                     Host = server.ws_host
