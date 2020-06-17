@@ -44,6 +44,21 @@
 - luci-theme-argon_new     ------------------适配19.07与18.06的主题
 - luci-theme-opentomcat    ------------------修复主机名错误（适配18.06）  
 - luci-theme-opentomato    ------------------修复主机名错误（适配18.06）
-- luci-app-vssr            ------------------helloworld
+- luci-app-vssr-plus       ------------------helloworld
+
+
+luci-app-vssr-plus
+使用方法
+    #下载源码
+    
+    git clone https://github.com/liuwenwv/luci-app-vssr-plus.git package/luci-app-vssr-plus
+    
+    git clone https://github.com/Leo-Jo-My/my package/my  #依赖包
+    
+    make menuconfig
+    
+    #编译
+    
+    make package/luci-app-vssr/{clean,compile} V=s
 
 
