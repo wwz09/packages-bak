@@ -14,7 +14,6 @@ PKG_CONFIG_DEPENDS:= CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_Shadowsocks \
 	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_dns2socks \
 	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_dnscrypt_proxy \
 	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_ChinaDNS \
-	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_haproxy \
 	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_privoxy \
 	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_v2ray-plugin
 
@@ -61,10 +60,6 @@ config PACKAGE_$(PKG_NAME)_INCLUDE_ChinaDNS
 	bool "Include chinadns"
 	default y
 
-config PACKAGE_$(PKG_NAME)_INCLUDE_haproxy
-	bool "Include haproxy"
-	default n
-
 config PACKAGE_$(PKG_NAME)_INCLUDE_privoxy
 	bool "Include privoxy http local"
 	default y
@@ -91,7 +86,6 @@ define Package/luci-app-vssr-plus
 	    +PACKAGE_$(PKG_NAME)_INCLUDE_dns2socks:dns2socks \
             +PACKAGE_$(PKG_NAME)_INCLUDE_dnscrypt_proxy:dnscrypt-proxy-full \
             +PACKAGE_$(PKG_NAME)_INCLUDE_ChinaDNS:ChinaDNS \
-            +PACKAGE_$(PKG_NAME)_INCLUDE_haproxy:haproxy \
             +PACKAGE_$(PKG_NAME)_INCLUDE_privoxy:privoxy \
             +PACKAGE_$(PKG_NAME)_INCLUDE_v2ray-plugin:v2ray-plugin
 endef
