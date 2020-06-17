@@ -53,11 +53,12 @@ luci-app-vssr-plus
     
     git clone https://github.com/liuwenwv/luci-app-vssr-plus.git package/luci-app-vssr-plus
     
-    git clone https://github.com/Leo-Jo-My/my package/my  #依赖包
+    git clone https://github.com/Leo-Jo-My/my package/my 
+ #依赖包
     
     make menuconfig
     
-    #编译
+ #编译
     
     make package/luci-app-vssr/{clean,compile} V=s
 
