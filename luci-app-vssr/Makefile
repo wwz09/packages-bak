@@ -6,8 +6,6 @@ PKG_RELEASE:=20200427-1
 
 PKG_CONFIG_DEPENDS:= CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_V2ray \
 	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_ShadowsocksR_Server \
-        CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_ChinaDNS \
-        CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_dns2socks \
 	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_ShadowsocksR_Socks
 
 include $(INCLUDE_DIR)/package.mk
@@ -22,13 +20,9 @@ config PACKAGE_$(PKG_NAME)_INCLUDE_Trojan
 	bool "Include Trojan"
 	default y
 
-config PACKAGE_$(PKG_NAME)_INCLUDE_ChinaDNS
-	bool "Include chinadns"
-	default y
-
-config PACKAGE_$(PKG_NAME)_INCLUDE_dns2socks
-	bool "Include dns2socks"
-	default n 
+config PACKAGE_$(PKG_NAME)_INCLUDE_ShadowsocksR_Server
+	bool "Include ShadowsocksR Server"
+	default n
 	
 config PACKAGE_$(PKG_NAME)_INCLUDE_ShadowsocksR_Socks
 	bool "Include ShadowsocksR Socks and Tunnel"
@@ -45,8 +39,6 @@ define Package/luci-app-vssr
             +PACKAGE_$(PKG_NAME)_INCLUDE_V2ray:v2ray \
 			+PACKAGE_$(PKG_NAME)_INCLUDE_Trojan:trojan \
 			+PACKAGE_$(PKG_NAME)_INCLUDE_Trojan:ipt2socks \
-                        +PACKAGE_$(PKG_NAME)_INCLUDE_dns2socks:dns2socks \
-                        +PACKAGE_$(PKG_NAME)_INCLUDE_ChinaDNS:ChinaDNS \
             +PACKAGE_$(PKG_NAME)_INCLUDE_ShadowsocksR_Server:shadowsocksr-libev-server \
             +PACKAGE_$(PKG_NAME)_INCLUDE_ShadowsocksR_Socks:shadowsocksr-libev-ssr-local
 endef
