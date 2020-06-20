@@ -11,7 +11,9 @@ PKG_CONFIG_DEPENDS:= CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_Shadowsocks \
 	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_ShadowsocksR_Socks \
 	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_Shadowsocks_Socks \
 	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_ipt2socks \
+	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_dns2socks \
 	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_ChinaDNS \
+	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_haproxy \
 	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_v2ray-plugin
 
 include $(INCLUDE_DIR)/package.mk
@@ -44,9 +46,17 @@ config PACKAGE_$(PKG_NAME)_INCLUDE_Shadowsocks_Socks
 config PACKAGE_$(PKG_NAME)_INCLUDE_ipt2socks
 	bool "Include ipt2socks"
 	default y
+	
+config PACKAGE_$(PKG_NAME)_INCLUDE_dns2socks
+	bool "Include dns2socks"
+	default y 
 
 config PACKAGE_$(PKG_NAME)_INCLUDE_ChinaDNS
 	bool "Include chinadns"
+	default y
+
+config PACKAGE_$(PKG_NAME)_INCLUDE_privoxy
+	bool "Include privoxy http local"
 	default y
 
 config PACKAGE_$(PKG_NAME)_INCLUDE_v2ray-plugin
@@ -60,7 +70,7 @@ define Package/luci-app-vssr-plus
 	SUBMENU:=3. Applications
 	TITLE:=A New SS/SSR/V2Ray/Trojan/Socks5 LuCI interface
 	PKGARCH:=all
-	DEPENDS:=+shadowsocksr-libev-alt +ipset +ip-full +iptables-mod-tproxy +dnsmasq-full +coreutils +coreutils-base64 +bash +pdnsd-alt +wget  +tcpping +lua-maxminddb +lua +luasocket +jshn +lua-cjson +coreutils-nohup  +curl \
+	DEPENDS:=+shadowsocksr-libev-alt +ipset +ip-full +iptables-mod-tproxy +dnsmasq-full +coreutils +coreutils-base64 +bash +pdnsd-alt +wget +lua-maxminddb +luasocket +jshn +lua-cjson +coreutils-nohup  +curl \
             +PACKAGE_$(PKG_NAME)_INCLUDE_Shadowsocks:shadowsocks-libev-ss-redir \
             +PACKAGE_$(PKG_NAME)_INCLUDE_V2ray:v2ray \
             +PACKAGE_$(PKG_NAME)_INCLUDE_Trojan:trojan \
@@ -68,7 +78,9 @@ define Package/luci-app-vssr-plus
             +PACKAGE_$(PKG_NAME)_INCLUDE_ShadowsocksR_Socks:shadowsocksr-libev-ssr-local \
             +PACKAGE_$(PKG_NAME)_INCLUDE_Shadowsocks_Socks:shadowsocks-libev-ss-local \
             +PACKAGE_$(PKG_NAME)_INCLUDE_ipt2socks:ipt2socks \
+	    +PACKAGE_$(PKG_NAME)_INCLUDE_dns2socks:dns2socks \
             +PACKAGE_$(PKG_NAME)_INCLUDE_ChinaDNS:ChinaDNS \
+            +PACKAGE_$(PKG_NAME)_INCLUDE_privoxy:privoxy \
             +PACKAGE_$(PKG_NAME)_INCLUDE_v2ray-plugin:v2ray-plugin
 endef
 
