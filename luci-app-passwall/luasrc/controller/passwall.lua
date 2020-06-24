@@ -1,6 +1,6 @@
 -- Copyright 2018-2020 Lienol <lawlienol@gmail.com>
 module("luci.controller.passwall", package.seeall)
-local appname = "科学上网"
+local appname = "passwall"
 local http = require "luci.http"
 local passwall = require "luci.model.cbi.passwall.api.passwall"
 local kcptun = require "luci.model.cbi.passwall.api.kcptun"
