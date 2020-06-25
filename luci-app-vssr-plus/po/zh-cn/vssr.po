@@ -746,8 +746,6 @@ msgstr "UDPspeeder 项目"
 msgid "Appointlist List"
 msgstr "DNS列表"
 
-msgid "udp2raw tunnel"
-msgstr "UDP隧道"
 
 msgid "Enable udp2raw"
 msgstr "启用 udp2raw"
@@ -770,10 +768,6 @@ msgstr "V2ray SOCKS5代理"
 
 msgid "Global V2RAY Server"
 msgstr "V2RAY服务端"
-
-msgid "haProxy settings"
-msgstr "HaProxy 设置"
-
 
 msgid "Enabling the Management Console"
 msgstr "启用管理控制台"
