@@ -769,22 +769,6 @@ fi
 	add_cron
 	return $?
 }
-start_udp2raw() {
-	cat > /var/etc/udp2raw.conf <<EOF
-# udp2raw config file
--c
--l0.0.0.0:$(uci_get_by_type udp2raw local_port)
--r$(uci_get_by_type udp2raw server):$(uci_get_by_type udp2raw server_port)
--a
--k $(uci_get_by_type udp2raw key)
---raw-mode $(uci_get_by_type udp2raw raw_mode)
---seq-mode $(uci_get_by_type udp2raw seq_mode)
---cipher-mode $(uci_get_by_type udp2raw cipher_mode)
---auth-mode $(uci_get_by_type udp2raw auth_mode)
-EOF
-	/usr/bin/udp2raw --conf-file /var/etc/udp2raw.conf >/dev/null 2>&1 &
-}
-
 start_udpspeeeder() {
 	/usr/bin/udpspeeder -c -l0.0.0.0:$(uci_get_by_type udpspeeder local_port) \
 		-r$(uci_get_by_type udpspeeder server):$(uci_get_by_type udpspeeder server_port) \
@@ -973,12 +957,8 @@ rules() {
 }
 
 start() {
-                 case "$(uci_get_by_type udp2raw udp2raw_enable)" in
-		1|on|true|yes|enabled)
-			start_udp2raw
-			;;
-	esac
-	case "$(uci_get_by_type udpspeeder udpspeeder_enable)" in
+                 
+	     case "$(uci_get_by_type udpspeeder udpspeeder_enable)" in
 		1|on|true|yes|enabled)
 			start_udpspeeeder
 			;;
@@ -1071,7 +1051,6 @@ stop() {
 	killall -q -9 obfs-local
 	killall -q -9 obfs-server
 	killall -q -9 chinadns
-        killall -q -9 udp2raw
         killall -q -9 udpspeeder
 	if [ -f /var/run/pdnsd.pid ]; then
 		kill $(cat /var/run/pdnsd.pid) >/dev/null 2>&1

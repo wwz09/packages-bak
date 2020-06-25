@@ -266,14 +266,6 @@ do
 			/etc/init.d/vssr restart
 		fi
 	fi
-#udp2raw
-	if [ $(uci_get_by_type udp2raw udp2raw_enable) = 1 ] ;then
-		ucount=`ps -w | grep udp2raw |grep -v grep| wc -l`
-		if [ $ucount = 0 ] ;then
-			/usr/bin/udp2raw --clear >/dev/null
-			/usr/bin/udp2raw --conf-file /var/etc/udp2raw.conf >/dev/null 2>&1 &
-		fi
-	fi
 #udpspeeder
 	if [ $(uci_get_by_type udpspeeder udpspeeder_enable) = 1 ] ;then
 		scount=`ps -w | grep udpspeeder |grep -v grep| wc -l`
