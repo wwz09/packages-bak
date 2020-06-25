@@ -728,30 +728,8 @@ msgstr "启用ipv6服务"
 msgid "Prohibit downloading tool ports through proxy"
 msgstr "禁止BT端口走代理"
 
-
-msgid "udp2raw Version"
-msgstr "udp2raw 版本"
-
-msgid "udp2raw tunnel Project"
-msgstr "udp2raw 项目"
-
-
-msgid "UDPspeeder Version"
-msgstr "UDPspeeder 版本"
-
-
-msgid "UDPspeeder Project"
-msgstr "UDPspeeder 项目"
-
 msgid "Appointlist List"
 msgstr "DNS列表"
-
-
-msgid "Enable udp2raw"
-msgstr "启用 udp2raw"
-
-msgid "Enable UDPspeeder"
-msgstr "启用 UDPspeeder"
 
 msgid "SOCKS5 Proxy"
 msgstr "SOCKS5代理"
