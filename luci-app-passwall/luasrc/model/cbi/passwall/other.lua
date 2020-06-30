@@ -1,4 +1,6 @@
-local api = require "luci.model.cbi.passwall.api.api"
+local fs = require "nixio.fs"
+local net = require"luci.model.network".init()
+local ifaces = require"luci.sys".net:devices()
 
 m = Map("passwall")
 
@@ -10,7 +12,7 @@ s.addremove = false
 ---- Delay Start
 o = s:option(Value, "start_delay", translate("Delay Start"),
              translate("Units:seconds"))
-o.default = "1"
+o.default = "0"
 o.rmempty = true
 
 ---- Open and close Daemon
@@ -18,7 +20,6 @@ o = s:option(Flag, "start_daemon", translate("Open and close Daemon"))
 o.default = 1
 o.rmempty = false
 
---[[
 ---- Open and close automatically
 o = s:option(Flag, "auto_on", translate("Open and close automatically"))
 o.default = 0
@@ -44,7 +45,6 @@ o.default = nil
 o:depends("auto_on", "1")
 o:value(nil, translate("Disable"))
 for e = 0, 23 do o:value(e, e .. translate("oclock")) end
---]]
 
 -- [[ Forwarding Settings ]]--
 s = m:section(TypedSection, "global_forwarding",
@@ -52,27 +52,11 @@ s = m:section(TypedSection, "global_forwarding",
 s.anonymous = true
 s.addremove = false
 
----- TCP No Redir Ports
-o = s:option(Value, "tcp_no_redir_ports", translate("TCP No Redir Ports"))
-o.default = "disable"
-o:value("disable", translate("No patterns are used"))
-o:value("1:65535", translate("All"))
-
----- UDP No Redir Ports
-o = s:option(Value, "udp_no_redir_ports", translate("UDP No Redir Ports"),
-             "<font color='red'>" .. translate(
-                 "Fill in the ports you don't want to be forwarded by the agent, with the highest priority.") ..
-                 "</font>")
-o.default = "disable"
-o:value("disable", translate("No patterns are used"))
-o:value("1:65535", translate("All"))
-
 ---- TCP Redir Ports
 o = s:option(Value, "tcp_redir_ports", translate("TCP Redir Ports"))
-o.default = "22,25,53,143,465,587,993,995,80,443"
+o.default = "80,443"
 o:value("1:65535", translate("All"))
-o:value("22,25,53,143,465,587,993,995,80,443", translate("Common Use"))
-o:value("80,443", translate("Only Web"))
+o:value("80,443", "80,443")
 o:value("80:", "80 " .. translate("or more"))
 o:value(":443", "443 " .. translate("or less"))
 
@@ -80,10 +64,11 @@ o:value(":443", "443 " .. translate("or less"))
 o = s:option(Value, "udp_redir_ports", translate("UDP Redir Ports"))
 o.default = "1:65535"
 o:value("1:65535", translate("All"))
-o:value("53", "DNS")
+o:value("53", "53")
 
 ---- Multi SS/SSR Process Option
-o = s:option(Value, "process", translate("Multi Process Option"))
+o = s:option(Value, "process", translate("Multi Process Option"),
+             translate("you can start SS/SSR with multiple process"))
 o.default = "0"
 o.rmempty = false
 o:value("0", translate("Auto"))
@@ -92,23 +77,11 @@ o:value("2", "2 " .. translate("Process"))
 o:value("3", "3 " .. translate("Process"))
 o:value("4", "4 " .. translate("Process"))
 
----- Socks Proxy Port
-local socks_node_num = tonumber(api.uci_get_type("global_other",
-                                                  "socks_node_num", 1))
-for i = 1, socks_node_num, 1 do
-    o = s:option(Value, "socks_proxy_port" .. i, translate("Socks Proxy Port"))
-    o.datatype = "port"
-    o.default = "108" .. i
-end
+-- [[ Proxy Settings ]]--
+s = m:section(TypedSection, "global_proxy", translate("Proxy Settings"))
+s.anonymous = true
+s.addremove = false
 
---[[
----- Proxy IPv6
-o = s:option(Flag, "proxy_ipv6", translate("Proxy IPv6"),
-             translate("The IPv6 traffic can be proxyed when selected"))
-o.default = 0
---]]
-
---[[
 ---- TCP Redir Port
 o = s:option(Value, "tcp_redir_port", translate("TCP Redir Port"))
 o.datatype = "port"
@@ -121,18 +94,28 @@ o.datatype = "port"
 o.default = 1051
 o.rmempty = true
 
+---- Socks5 Proxy Port
+o = s:option(Value, "socks5_proxy_port", translate("Socks5 Proxy Port"))
+o.datatype = "port"
+o.default = 1061
+o.rmempty = true
+
 ---- Kcptun Port
 o = s:option(Value, "kcptun_port", translate("Kcptun Port"))
 o.datatype = "port"
-o.default = 12948
+o.default = 11183
 o.rmempty = true
---]]
+
+---- Proxy IPv6
+o = s:option(Flag, "proxy_ipv6", translate("Proxy IPv6"),
+             translate("The IPv6 traffic can be proxyed when selected"))
+o.default = 0
 
 -- [[ Other Settings ]]--
 s = m:section(TypedSection, "global_other", translate("Other Settings"),
-              "<font color='red'>" .. translatef(
-                  "You can only set up a maximum of %s nodes for the time being, Used for access control.",
-                  "3") .. "</font>")
+              translatef(
+                  "You can only set up a maximum of %s nodes for the time being",
+                  "3"))
 s.anonymous = true
 s.addremove = false
 
@@ -152,8 +135,8 @@ o:value("1")
 o:value("2")
 o:value("3")
 
----- Socks Node Number Option
-o = s:option(ListValue, "socks_node_num", "Socks" .. translate("Node Number"))
+---- Socks5 Node Number Option
+o = s:option(ListValue, "socks5_node_num", "Socks5" .. translate("Node Number"))
 o.default = "1"
 o.rmempty = false
 o:value("1")
@@ -162,18 +145,16 @@ o:value("3")
 
 ---- 状态使用大图标
 o = s:option(Flag, "status_use_big_icon", translate("Status Use Big Icon"))
-o.default = "1"
-o.rmempty = false
-
----- 显示节点检测
-o =
-    s:option(Flag, "status_show_check_port", translate("Status Show Check Port"))
 o.default = "0"
 o.rmempty = false
 
----- 显示IP111
-o = s:option(Flag, "status_show_ip111", translate("Status Show IP111"))
-o.default = "0"
-o.rmempty = false
+---- Hide Menu
+o = s:option(Button, "hide", translate("Hide Menu"), translate(
+                 "After the hidden to the display, type in the address bar enter the admin/vpn/passwall/show.<br />such as: http://192.168.1.1/cgi-bin/luci/admin/vpn/passwall/show"))
+o.inputstyle = "remove"
+function o.write(e, e)
+    luci.http.redirect(luci.dispatcher.build_url("admin", "vpn", "passwall",
+                                                 "hide"))
+end
 
 return m
