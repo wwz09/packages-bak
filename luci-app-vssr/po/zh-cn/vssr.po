@@ -2,7 +2,7 @@ msgid ""
 msgstr "Content-Type: text/plain; charset=UTF-8\n"
 
 msgid "vssr"
-msgstr "你好世界"
+msgstr "Hello World"
 
 msgid "Client"
 msgstr "客户端"
@@ -644,3 +644,6 @@ msgstr "开启广告屏蔽"
 
 msgid "Licence"
 msgstr "许可"
+
+msgid "Area"
+msgstr "区域"
