@@ -1,5 +1,5 @@
 msgid "Pass Wall"
-msgstr "科学上网"
+msgstr "PassWall"
 
 msgid "Auto"
 msgstr "自动"
