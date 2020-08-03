@@ -1,5 +1,9 @@
 <%
-local brook_version = require "luci.model.cbi.passwall.api.api".get_brook_version()
+local api = require "luci.model.cbi.passwall.api.api"
+local dsp = require "luci.dispatcher"
+
+local brook_path = api.uci_get_type("global_app", "brook_file")
+local brook_version = luci.sys.exec("[ -f '" .. brook_path .. "' ] && " .. brook_path .. " -v | awk '{print $3}'")
 -%>
 
 <script type="text/javascript">
@@ -71,7 +75,7 @@ local brook_version = require "luci.model.cbi.passwall.api.api".get_brook_versio
 
 		var ckeckDetailElm = document.getElementById(btn.id + '-detail');
 
-		XHR.get('<%=url([[admin]], [[services]], [[passwall]], [[brook_check]])%>', {
+		XHR.get('<%=dsp.build_url("admin/vpn/passwall/brook_check")%>', {
 			token: tokenStr,
 			arch: ''
 		}, function(x,json) {
@@ -111,7 +115,7 @@ local brook_version = require "luci.model.cbi.passwall.api.api".get_brook_versio
 
 		addPageNotice_brook();
 
-		var brookUpdateUrl = '<%=url([[admin]], [[services]], [[passwall]], [[brook_update]])%>';
+		var brookUpdateUrl = '<%=dsp.build_url("admin/vpn/passwall/brook_update")%>';
 		// Download file
 		XHR.get(brookUpdateUrl, {
 			token: tokenStr,
@@ -147,7 +151,7 @@ local brook_version = require "luci.model.cbi.passwall.api.api".get_brook_versio
 	</label>
 	<div class="cbi-value-field">
 		<div class="cbi-value-description">
-			<span>【 <%=brook_version%> 】</span>
+			<span>【 <%=brook_version%>】</span>
 			<input class="cbi-button cbi-input-apply" type="button" id="_brook-check_btn" onclick="onBtnClick_brook(this);" value="<%:Manually update%>" />
 			<span id="_brook-check_btn-detail"></span>
 		</div>

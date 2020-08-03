@@ -1,4 +1,5 @@
 local ucursor = require"luci.model.uci".cursor()
+local sys = require "luci.sys"
 local json = require "luci.jsonc"
 local node_section = arg[1]
 local proto = arg[2]
@@ -7,13 +8,35 @@ local socks_proxy_port = arg[4]
 local node = ucursor:get_all("passwall", node_section)
 local inbounds = {}
 local outbounds = {}
+local network = proto
 local routing = nil
 
 local function gen_outbound(node)
     local result = nil
     if node then
+        local node_id = node[".name"]
+        if node.type ~= "V2ray" then
+            if node.type == "Socks5" then
+                node.v2ray_protocol = "socks"
+                node.v2ray_transport = "tcp"
+            else
+                local node_type = (proto and proto ~= "nil") and proto or
+                                      "socks"
+                local new_port = sys.exec(
+                                     "echo -n $(/usr/share/passwall/app.sh get_new_port auto tcp)")
+                node.port = new_port
+                sys.call(string.format(
+                             "/usr/share/passwall/app.sh gen_start_config %s %s %s %s %s %s",
+                             node_id, new_port, "SOCKS",
+                             "/var/etc/passwall/v2_balancing_" .. node_type .. "_" ..
+                                 node_id .. ".json", "4", "127.0.0.1"))
+                node.v2ray_protocol = "socks"
+                node.v2ray_transport = "tcp"
+                node.address = "127.0.0.1"
+            end
+        end
         result = {
-            tag = node[".name"],
+            tag = node_id,
             protocol = node.v2ray_protocol or "vmess",
             mux = {
                 enabled = (node.v2ray_mux == "1") and true or false,
@@ -29,7 +52,8 @@ local function gen_outbound(node)
                     allowInsecure = (node.tls_allowInsecure == "1") and true or
                         false
                 } or nil,
-                tcpSettings = (node.v2ray_transport == "tcp") and {
+                tcpSettings = (node.v2ray_transport == "tcp" and
+                    node.v2ray_protocol ~= "socks") and {
                     header = {
                         type = node.v2ray_tcp_guise,
                         request = {
@@ -82,19 +106,13 @@ local function gen_outbound(node)
                         }
                     }
                 } or nil,
-                servers = (node.v2ray_protocol == "http" or node.v2ray_protocol == "socks" or node.v2ray_protocol == "shadowsocks") and {
+                servers = (node.v2ray_protocol == "socks") and {
                     {
                         address = node.address,
                         port = tonumber(node.port),
-                        method = node.v2ray_ss_encrypt_method,
-                        password = node.password or "",
-                        ota = (node.v2ray_ss_ota == '1') and true or false,
-                        users = (node.username and node.password) and {
-                            {
-                                user = node.username or "",
-                                pass = node.password or ""
-                            }
-                        } or nil
+                        users = (node.username and node.password) and
+                            {{user = node.username, pass = node.password}} or
+                            nil
                     }
                 } or nil
             }
@@ -139,8 +157,22 @@ if redir_port ~= "nil" then
     end
 end
 
-local outbound = gen_outbound(node)
-if outbound then table.insert(outbounds, outbound) end
+if node.v2ray_balancing_node then
+    local nodes = node.v2ray_balancing_node
+    local length = #nodes
+    for i = 1, length do
+        local node = ucursor:get_all("passwall", nodes[i])
+        local outbound = gen_outbound(node)
+        if outbound then table.insert(outbounds, outbound) end
+    end
+    routing = {
+        domainStrategy = "IPOnDemand",
+        balancers = {{tag = "balancer", selector = nodes}},
+        rules = {
+            {type = "field", network = "tcp,udp", balancerTag = "balancer"}
+        }
+    }
+end
 
 -- 额外传出连接
 table.insert(outbounds,
