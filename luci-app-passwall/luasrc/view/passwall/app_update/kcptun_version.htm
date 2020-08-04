@@ -1,23 +1,10 @@
 <%
-local api = require "luci.model.cbi.passwall.api.api"
-local dsp = require "luci.dispatcher"
-
-function get_luci_version()
-	local ipkg  = require "luci.model.ipkg"
-	local package_name = "luci-app-passwall"
-	local package_info = ipkg.info(package_name) or {}
-	if next(package_info) ~= nil then
-		return package_info[package_name]["Version"]
-	end
-	return ""
-end
-
-local passwall_version = get_luci_version()
+local kcptun_version = require "luci.model.cbi.passwall.api.api".get_kcptun_version()
 -%>
 
 <script type="text/javascript">
 	//<![CDATA[
-	var passwallInfo;
+	var kcptunInfo;
 	var tokenStr = '<%=token%>';
 	var noUpdateText = '<%:It is the latest version%>';
 	var updateSuccessText = '<%:Update successful%>';
@@ -30,22 +17,22 @@ local passwall_version = get_luci_version()
 	var movingText = '<%:Moving...%>';
 
 	window.onload = function() {
-		var passwallCheckBtn = document.getElementById('_passwall-check_btn');
-		var passwallDetailElm = document.getElementById('_passwall-check_btn-detail');
+		var kcptunCheckBtn = document.getElementById('_kcptun-check_btn');
+		var kcptunDetailElm = document.getElementById('_kcptun-check_btn-detail');
 	};
 
-	function addPageNotice_luci() {
+	function addPageNotice_kcptun() {
 		window.onbeforeunload = function(e) {
 			e.returnValue = updateInProgressNotice;
 			return updateInProgressNotice;
 		};
 	}
 
-	function removePageNotice_luci() {
+	function removePageNotice_kcptun() {
 		window.onbeforeunload = undefined;
 	}
 
-	function onUpdateSuccess_luci(btn) {
+	function onUpdateSuccess_kcptun(btn) {
 		alert(updateSuccessText);
 
 		if(btn) {
@@ -59,7 +46,7 @@ local passwall_version = get_luci_version()
 		}, 1000);
 	}
 
-	function onRequestError_luci(btn, errorMessage) {
+	function onRequestError_kcptun(btn, errorMessage) {
 		btn.disabled = false;
 		btn.value = btn.placeholder;
 
@@ -68,34 +55,34 @@ local passwall_version = get_luci_version()
 		}
 	}
 
-	function onBtnClick_luci(btn) {
-		if(passwallInfo === undefined) {
-			checkUpdate_luci(btn);
+	function onBtnClick_kcptun(btn) {
+		if(kcptunInfo === undefined) {
+			checkUpdate_kcptun(btn);
 		} else {
-			doUpdate_luci(btn);
+			doUpdate_kcptun(btn);
 		}
 	}
 
-	function checkUpdate_luci(btn) {
+	function checkUpdate_kcptun(btn) {
 		btn.disabled = true;
 		btn.value = inProgressText;
 
-		addPageNotice_luci();
+		addPageNotice_kcptun();
 
 		var ckeckDetailElm = document.getElementById(btn.id + '-detail');
 
-		XHR.get('<%=dsp.build_url("admin/vpn/passwall/luci_check")%>', {
+		XHR.get('<%=url([[admin]], [[services]], [[passwall]], [[kcptun_check]])%>', {
 			token: tokenStr,
 			arch: ''
 		}, function(x,json) {
-			removePageNotice_luci();
+			removePageNotice_kcptun();
 
 			if(json.code) {
-				passwallInfo = undefined;
-				onRequestError_luci(btn, json.error);
+				kcptunInfo = undefined;
+				onRequestError_kcptun(btn, json.error);
 			} else {
 				if(json.update) {
-					passwallInfo = json;
+					kcptunInfo = json;
 					btn.disabled = false;
 					btn.value = clickToUpdateText;
 					btn.placeholder = clickToUpdateText;
@@ -118,24 +105,52 @@ local passwall_version = get_luci_version()
 		},300);
 	}
 
-	function doUpdate_luci(btn) {
+	function doUpdate_kcptun(btn) {
 		btn.disabled = true;
 		btn.value = downloadingText;
 
-		addPageNotice_luci();
+		addPageNotice_kcptun();
 
-		var updateUrl = '<%=dsp.build_url("admin/vpn/passwall/luci_update")%>';
+		var kcptunUpdateUrl = '<%=url([[admin]], [[services]], [[passwall]], [[kcptun_update]])%>';
 		// Download file
-		XHR.get(updateUrl, {
+		XHR.get(kcptunUpdateUrl, {
 			token: tokenStr,
-			url: passwallInfo ? passwallInfo.url.download : '',
-			save: true
+			url: kcptunInfo ? kcptunInfo.url.download : ''
 		}, function(x,json) {
-			removePageNotice_luci();
 			if(json.code) {
-				onRequestError_luci(btn, json.error);
+				removePageNotice_kcptun();
+				onRequestError_kcptun(btn, json.error);
 			} else {
-				onUpdateSuccess_luci(btn);
+				btn.value = decompressioningText;
+
+				// Extract file
+				XHR.get(kcptunUpdateUrl, {
+					token: tokenStr,
+					task: 'extract',
+					file: json.file,
+					subfix: kcptunInfo ? kcptunInfo.type : ''
+				}, function(x,json) {
+					if(json.code) {
+						removePageNotice_kcptun();
+						onRequestError_kcptun(btn, json.error);
+					} else {
+						btn.value = movingText;
+
+						// Move file to target dir
+						XHR.get(kcptunUpdateUrl, {
+							token: tokenStr,
+							task: 'move',
+							file: json.file
+						}, function(x,json) {
+							removePageNotice_kcptun();
+							if(json.code) {
+								onRequestError_kcptun(btn, json.error);
+							} else {
+								onUpdateSuccess_kcptun(btn);
+							}
+						},300)
+					}
+				},300)
 			}
 		},300)
 	}
@@ -143,14 +158,14 @@ local passwall_version = get_luci_version()
 </script>
 
 <div class="cbi-value">
-	<label class="cbi-value-title">PassWall
+	<label class="cbi-value-title">Kcptun
 		<%:Version%>
 	</label>
 	<div class="cbi-value-field">
 		<div class="cbi-value-description">
-			<span>【 <%=passwall_version%>】</span>
-			<input class="cbi-button cbi-input-apply" type="button" id="_passwall-check_btn" onclick="onBtnClick_luci(this);" value="<%:Manually update%>" />
-			<span id="_passwall-check_btn-detail"></span>
+			<span>【 <%=kcptun_version%> 】</span>
+			<input class="cbi-button cbi-input-apply" type="button" id="_kcptun-check_btn" onclick="onBtnClick_kcptun(this);" value="<%:Manually update%>" />
+			<span id="_kcptun-check_btn-detail"></span>
 		</div>
 	</div>
 </div>
