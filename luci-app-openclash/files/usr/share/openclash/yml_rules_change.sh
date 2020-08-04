@@ -13,8 +13,14 @@ yml_other_set()
       sed -i '/^##Custom Rules 2##/d' "$4" 2>/dev/null
       sed -i '/^##Custom Rules 2 End##/d' "$4" 2>/dev/null
       sed -i '/- DOMAIN-KEYWORD,tracker,DIRECT/d' "$4" 2>/dev/null
-      sed -i '/- DOMAIN-KEYWORD,announce,DIRECT/d' "$4" 2>/dev/null
+      sed -i '/- DOMAIN-KEYWORD,announce.php?passkey=,DIRECT/d' "$4" 2>/dev/null
       sed -i '/- DOMAIN-KEYWORD,torrent,DIRECT/d' "$4" 2>/dev/null
+      sed -i '/- DOMAIN-KEYWORD,peer_id=,DIRECT/d' "$4" 2>/dev/null
+      sed -i '/- DOMAIN-KEYWORD,info_hash,DIRECT/d' "$4" 2>/dev/null
+      sed -i '/- DOMAIN-KEYWORD,get_peers,DIRECT/d' "$4" 2>/dev/null
+      sed -i '/- DOMAIN-KEYWORD,find_node,DIRECT/d' "$4" 2>/dev/null
+      sed -i '/- DOMAIN-KEYWORD,BitTorrent,DIRECT/d' "$4" 2>/dev/null
+      sed -i '/- DOMAIN-KEYWORD,announce_peer,DIRECT/d' "$4" 2>/dev/null
       
       if [ -z "$(grep '^ \{0,\}- IP-CIDR,198.18.0.1/16,REJECT,no-resolve' "$4")" ] && [ "$6" = "fake-ip" ]; then
          if [ ! -z "$(grep "^ \{0,\}- IP-CIDR,198.18.0.1/16" "$4")" ]; then
@@ -24,46 +30,41 @@ yml_other_set()
             if [ -z "$(grep '^- IP-CIDR,198.18.0.1/16,REJECT,no-resolve' "$4")" ]; then
                sed -i '1,/^ \{0,\}- MATCH/{/^ \{0,\}- MATCH/s/^ \{0,\}- MATCH/- IP-CIDR,198.18.0.1\/16,REJECT,no-resolve\n&/}' "$4" 2>/dev/null
             fi
-            if [ -z "$(grep '^- IP-CIDR,198.18.0.1/16,REJECT,no-resolve' "$4")" ]; then
-               sed -i '1,/^ \{0,\}- FINAL/{/^ \{0,\}- FINAL/s/^ \{0,\}- FINAL/- IP-CIDR,198.18.0.1\/16,REJECT,no-resolve\n&/}' "$4" 2>/dev/null
-            fi
          fi
       fi
-      
+
       if [ "$7" = 1 ]; then
          sed -i '1,/^ \{0,\}- GEOIP/{/^ \{0,\}- GEOIP/s/^ \{0,\}- GEOIP/- DOMAIN-KEYWORD,tracker,DIRECT\n&/}' "$4" 2>/dev/null
          if [ -z "$(grep '^- DOMAIN-KEYWORD,tracker,DIRECT' "$4")" ]; then
             sed -i '1,/^ \{0,\}- MATCH/{/^ \{0,\}- MATCH/s/^ \{0,\}- MATCH/- DOMAIN-KEYWORD,tracker,DIRECT\n&/}' "$4" 2>/dev/null
          fi
          if [ -z "$(grep '^- DOMAIN-KEYWORD,tracker,DIRECT' "$4")" ]; then
-            sed -i '1,/^ \{0,\}- FINAL/{/^ \{0,\}- FINAL/s/^ \{0,\}- FINAL/- DOMAIN-KEYWORD,tracker,DIRECT\n&/}' "$4" 2>/dev/null
-         fi
-         if [ -z "$(grep '^- DOMAIN-KEYWORD,tracker,DIRECT' "$4")" ]; then
             echo "- DOMAIN-KEYWORD,tracker,DIRECT" >> "$4" 2>/dev/null
          fi
-         sed -i "/- DOMAIN-KEYWORD,tracker,DIRECT/a\- DOMAIN-KEYWORD,announce,DIRECT" "$4" 2>/dev/null
+         sed -i "/- DOMAIN-KEYWORD,tracker,DIRECT/a\- DOMAIN-KEYWORD,announce.php?passkey=,DIRECT" "$4" 2>/dev/null
          sed -i "/- DOMAIN-KEYWORD,tracker,DIRECT/a\- DOMAIN-KEYWORD,torrent,DIRECT" "$4" 2>/dev/null
+         sed -i "/- DOMAIN-KEYWORD,tracker,DIRECT/a\- DOMAIN-KEYWORD,peer_id=,DIRECT" "$4" 2>/dev/null
+         sed -i "/- DOMAIN-KEYWORD,tracker,DIRECT/a\- DOMAIN-KEYWORD,info_hash,DIRECT" "$4" 2>/dev/null
+         sed -i "/- DOMAIN-KEYWORD,tracker,DIRECT/a\- DOMAIN-KEYWORD,get_peers,DIRECT" "$4" 2>/dev/null
+         sed -i "/- DOMAIN-KEYWORD,tracker,DIRECT/a\- DOMAIN-KEYWORD,find_node,DIRECT" "$4" 2>/dev/null
+         sed -i "/- DOMAIN-KEYWORD,tracker,DIRECT/a\- DOMAIN-KEYWORD,BitTorrent,DIRECT" "$4" 2>/dev/null
+         sed -i "/- DOMAIN-KEYWORD,tracker,DIRECT/a\- DOMAIN-KEYWORD,announce_peer,DIRECT" "$4" 2>/dev/null
          if [ -z "$(grep "###- MATCH," "$4")" ] && [ -z "$(grep "###- FINAL," "$4")" ]; then
             sed -i 's/- MATCH,/###&/' "$4" 2>/dev/null
-            sed -i 's/- FINAL,/###&/' "$4" 2>/dev/null
             echo "- MATCH,DIRECT" >> "$4" 2>/dev/null
          fi
       else
          if [ ! -z "$(grep "###- MATCH," "$4")" ] || [ ! -z "$(grep "###- FINAL," "$4")" ]; then
             sed -i '/^- MATCH,DIRECT/d' "$4" 2>/dev/null
             sed -i "s/###- MATCH,/- MATCH,/" "$4" 2>/dev/null
-            sed -i "s/###- FINAL,/- FINAL,/" "$4" 2>/dev/null
          fi
       fi
-      
+
       if [ "$3" = 1 ]; then
          sed -i '/^rules:/a\##Custom Rules End##' "$4" 2>/dev/null
          sed -i '/^rules:/a\##Custom Rules##' "$4" 2>/dev/null
          sed -i '/^##Custom Rules##/r/etc/openclash/custom/openclash_custom_rules.list' "$4" 2>/dev/null
          sed -i '/^ \{0,\}- MATCH,/i\##Custom Rules 2##' "$4" 2>/dev/null
-         if [ -z "$(grep '^##Custom Rules 2##' "$4")" ]; then
-            sed -i '/^ \{0,\}- FINAL,/i\##Custom Rules 2##' "$4" 2>/dev/null
-         fi
          if [ -z "$(grep '^##Custom Rules 2##' "$4")" ]; then
             echo "##Custom Rules 2##" >> "$4" 2>/dev/null
          fi
@@ -83,6 +84,7 @@ if [ "$2" != 0 ]; then
    GlobalTV=$(uci get openclash.config.GlobalTV 2>/dev/null)
    AsianTV=$(uci get openclash.config.AsianTV 2>/dev/null)
    Proxy=$(uci get openclash.config.Proxy 2>/dev/null)
+   Youtube=$(uci get openclash.config.Youtube 2>/dev/null)
    Apple=$(uci get openclash.config.Apple 2>/dev/null)
    Netflix=$(uci get openclash.config.Netflix 2>/dev/null)
    Spotify=$(uci get openclash.config.Spotify 2>/dev/null)
@@ -102,17 +104,6 @@ if [ "$2" != 0 ]; then
          yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7"
          exit 0
 	    fi
-   elif [ "$2" = "ConnersHua_provider" ]; then
-       if [ -z "$(grep "$GlobalTV" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep "$AsianTV" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep "$Proxy" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep "$AdBlock" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep "$Others" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep "$Domestic" /tmp/Proxy_Group)" ]; then
-         echo "${1} Warning: Because of The Different Porxy-Group's Name, Stop Setting The Other Rules!" >>/tmp/openclash.log
-         yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7"
-         exit 0
-       fi
    elif [ "$2" = "ConnersHua" ]; then
        if [ -z "$(grep "$GlobalTV" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep "$AsianTV" /tmp/Proxy_Group)" ]\
@@ -127,6 +118,7 @@ if [ "$2" != 0 ]; then
        if [ -z "$(grep "$GlobalTV" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep "$AsianTV" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep "$Proxy" /tmp/Proxy_Group)" ]\
+	 || [ -z "$(grep "$Youtube" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep "$Apple" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep "$Netflix" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep "$Spotify" /tmp/Proxy_Group)" ]\
@@ -166,6 +158,7 @@ if [ "$2" != 0 ]; then
     GlobalTV_YAML=$(grep '##GlobalTV:' "$4" |awk -F ':' '{print $2}')
     AsianTV_YAML=$(grep '##AsianTV:' "$4" |awk -F ':' '{print $2}')
     Proxy_YAML=$(grep '##Proxy:' "$4" |awk -F ':' '{print $2}')
+    Youtube_YAML=$(grep '##Youtube:' "$4" |awk -F ':' '{print $2}')
     Apple_YAML=$(grep '##Apple:' "$4" |awk -F ':' '{print $2}')
     Netflix_YAML=$(grep '##Netflix:' "$4" |awk -F ':' '{print $2}')
     Spotify_YAML=$(grep '##Spotify:' "$4" |awk -F ':' '{print $2}')
@@ -184,15 +177,6 @@ if [ "$2" != 0 ]; then
 	 || [ "$Others" != "$Others_YAML" ];then
          check_def=1
 	     fi
-    elif [ "$2" = "ConnersHua_provider" ]; then
-       if [ "$GlobalTV" != "$GlobalTV_YAML" ]\
-	 || [ "$AsianTV" != "$AsianTV_YAML" ]\
-	 || [ "$Proxy" != "$Proxy_YAML" ]\
-	 || [ "$AdBlock" != "$AdBlock_YAML" ]\
-	 || [ "$Others" != "$Others_YAML" ]\
-	 || [ "$Domestic" != "$Domestic_YAML" ]; then
-         check_def=1
-       fi
     elif [ "$2" = "ConnersHua" ]; then
        if [ "$GlobalTV" != "$GlobalTV_YAML" ]\
 	 || [ "$AsianTV" != "$AsianTV_YAML" ]\
@@ -205,6 +189,7 @@ if [ "$2" != 0 ]; then
        if [ "$GlobalTV" != "$GlobalTV_YAML" ]\
 	 || [ "$AsianTV" != "$AsianTV_YAML" ]\
 	 || [ "$Proxy" != "$Proxy_YAML" ]\
+	 || [ "$Youtube" != "$Youtube_YAML" ]\
 	 || [ "$Apple" != "$Apple_YAML" ]\
 	 || [ "$Netflix" != "$Netflix_YAML" ]\
 	 || [ "$Spotify" != "$Spotify_YAML" ]\
@@ -236,6 +221,9 @@ if [ "$2" != 0 ]; then
             sed -i "s/,Proxy$/,${Proxy}#d/g" "/tmp/other_rule.yaml" 2>/dev/null
             sed -i "s/,Proxy,no-resolve$/,${Proxy},no-resolve#d/g" "/tmp/other_rule.yaml" 2>/dev/null
             sed -i "/rules:/a\##Proxy:${Proxy}" "/tmp/other_rule.yaml" 2>/dev/null
+            sed -i "s/,Youtube$/,${Youtube}#d/g" "/tmp/other_rule.yaml" 2>/dev/null
+            sed -i "s/,Youtube,no-resolve$/,${Youtube},no-resolve#d/g" "/tmp/other_rule.yaml" 2>/dev/null
+            sed -i "/rules:/a\##Youtube:${Youtube}" "/tmp/other_rule.yaml" 2>/dev/null
             sed -i "s/,Apple$/,${Apple}#d/g" "/tmp/other_rule.yaml" 2>/dev/null
             sed -i "s/,Apple,no-resolve$/,${Apple},no-resolve#d/g" "/tmp/other_rule.yaml" 2>/dev/null
             sed -i "/rules:/a\##Apple:${Apple}" "/tmp/other_rule.yaml" 2>/dev/null
@@ -273,8 +261,8 @@ if [ "$2" != 0 ]; then
             sed -i "s/,Others$/,${Others},no-resolve#d/g" "/tmp/other_rule.yaml" 2>/dev/null
             sed -i "/rules:/a\##Others:${Others}" "/tmp/other_rule.yaml" 2>/dev/null
             sed -i "s/#d//g" "/tmp/other_rule.yaml" 2>/dev/null
-       elif [ "$2" = "ConnersHua_provider" ]; then
-            cp /etc/openclash/ConnersHua_provider.yaml /tmp/other_rule_provider.yaml
+       elif [ "$2" = "ConnersHua" ]; then
+            cp /etc/openclash/ConnersHua.yaml /tmp/other_rule_provider.yaml
             sed -n '/^rules:/,$p' /tmp/other_rule_provider.yaml > /tmp/other_rule.yaml 2>/dev/null
             sed -i '/^rules:/,$d' /tmp/other_rule_provider.yaml 2>/dev/null
             sed -i "/^ \{0,\}rule-providers:/c\rule-providers:" /tmp/other_rule_provider.yaml 2>/dev/null
@@ -293,14 +281,11 @@ if [ "$2" != 0 ]; then
                sed -i "/rules:/a\##Proxy:${Proxy}" "/tmp/other_rule.yaml" 2>/dev/null
                sed -i "s/,China,DIRECT$/,China,${Domestic}#d/g" "/tmp/other_rule.yaml" 2>/dev/null
                sed -i "s/,China,DIRECT,no-resolve$/,China,${Domestic},no-resolve#d/g" "/tmp/other_rule.yaml" 2>/dev/null
-               sed -i "s/,ChinaIP,DIRECT$/,China,${Domestic}#d/g" "/tmp/other_rule.yaml" 2>/dev/null
-               sed -i "s/,ChinaIP,DIRECT,no-resolve$/,China,${Domestic},no-resolve#d/g" "/tmp/other_rule.yaml" 2>/dev/null
-               sed -i "s/,CN,DIRECT$/,China,${Domestic}#d/g" "/tmp/other_rule.yaml" 2>/dev/null
-               sed -i "s/,CN,DIRECT,no-resolve$/,China,${Domestic},no-resolve#d/g" "/tmp/other_rule.yaml" 2>/dev/null
+               sed -i "s/,ChinaIP,DIRECT$/,ChinaIP,${Domestic}#d/g" "/tmp/other_rule.yaml" 2>/dev/null
+               sed -i "s/,ChinaIP,DIRECT,no-resolve$/,ChinaIP,${Domestic},no-resolve#d/g" "/tmp/other_rule.yaml" 2>/dev/null
+               sed -i "s/,CN,DIRECT$/,CN,${Domestic}#d/g" "/tmp/other_rule.yaml" 2>/dev/null
+               sed -i "s/,CN,DIRECT,no-resolve$/,CN,${Domestic},no-resolve#d/g" "/tmp/other_rule.yaml" 2>/dev/null
                sed -i "/rules:/a\##Domestic:${Domestic}" "/tmp/other_rule.yaml" 2>/dev/null
-               sed -i "s/,Unbreak,DIRECT$/,Unbreak,${AdBlock}#d/g" "/tmp/other_rule.yaml" 2>/dev/null
-               sed -i "s/,Unbreak,DIRECT,no-resolve$/,Unbreak,${AdBlock},no-resolve#d/g" "/tmp/other_rule.yaml" 2>/dev/null
-               sed -i "/rules:/a\##Others:${AdBlock}" "/tmp/other_rule.yaml" 2>/dev/null
                sed -i "s/,MATCH$/,${Others}#d/g" "/tmp/other_rule.yaml" 2>/dev/null
                sed -i "s/,MATCH,no-resolve$/,${Others},no-resolve#d/g" "/tmp/other_rule.yaml" 2>/dev/null
                sed -i "/rules:/a\##Others:${Others}" "/tmp/other_rule.yaml" 2>/dev/null
@@ -324,24 +309,6 @@ if [ "$2" != 0 ]; then
                sed -i '/^ \{0,\}rule-providers:/d' "/tmp/other_rule_provider.yaml" 2>/dev/null
                sed -i '/rule-providers:/r/tmp/other_rule_provider.yaml' "$9" 2>/dev/null
             fi
-       elif [ "$2" = "ConnersHua" ]; then
-       	    cp /etc/openclash/ConnersHua.yaml /tmp/other_rule.yaml
-            sed -i "s/,GlobalMedia$/,${GlobalTV}#d/g" "/tmp/other_rule.yaml" 2>/dev/null
-            sed -i "s/,GlobalMedia,no-resolve$/,${GlobalTV},no-resolve#d/g" "/tmp/other_rule.yaml" 2>/dev/null
-            sed -i "/rules:/a\##GlobalTV:${GlobalTV}" "/tmp/other_rule.yaml" 2>/dev/null
-            sed -i "s/,HKMTMedia$/,${AsianTV}#d/g" "/tmp/other_rule.yaml" 2>/dev/null
-            sed -i "s/,HKMTMedia,no-resolve$/,${AsianTV},no-resolve#d/g" "/tmp/other_rule.yaml" 2>/dev/null
-            sed -i "/rules:/a\##AsianTV:${AsianTV}" "/tmp/other_rule.yaml" 2>/dev/null
-            sed -i "s/,PROXY$/,${Proxy}#d/g" "/tmp/other_rule.yaml" 2>/dev/null
-            sed -i "s/,PROXY,no-resolve$/,${Proxy},no-resolve#d/g" "/tmp/other_rule.yaml" 2>/dev/null
-            sed -i "/rules:/a\##Proxy:${Proxy}" "/tmp/other_rule.yaml" 2>/dev/null
-            sed -i "s/,DIRECT$/,${Domestic}#d/g" "/tmp/other_rule.yaml" 2>/dev/null
-            sed -i "s/,DIRECT,no-resolve$/,${Domestic},no-resolve#d/g" "/tmp/other_rule.yaml" 2>/dev/null
-            sed -i "/rules:/a\##Domestic:${Domestic}" "/tmp/other_rule.yaml" 2>/dev/null
-            sed -i "s/,MATCH$/,${Others}#d/g" "/tmp/other_rule.yaml" 2>/dev/null
-            sed -i "s/,MATCH,no-resolve$/,${Others},no-resolve#d/g" "/tmp/other_rule.yaml" 2>/dev/null
-            sed -i "/rules:/a\##Others:${Others}" "/tmp/other_rule.yaml" 2>/dev/null
-            sed -i "s/#d//g" "/tmp/other_rule.yaml" 2>/dev/null
        else
             cp /etc/openclash/ConnersHua_return.yaml /tmp/other_rule.yaml
             sed -i "s/,PROXY$/,${Proxy}#d/g" "/tmp/other_rule.yaml" 2>/dev/null

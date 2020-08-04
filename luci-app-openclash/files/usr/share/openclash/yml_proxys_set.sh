@@ -133,11 +133,16 @@ yml_servers_set()
    config_get "server" "$section" "server" ""
    config_get "port" "$section" "port" ""
    config_get "cipher" "$section" "cipher" ""
+   config_get "cipher_ssr" "$section" "cipher_ssr" ""
    config_get "password" "$section" "password" ""
    config_get "securitys" "$section" "securitys" ""
    config_get "udp" "$section" "udp" ""
    config_get "obfs" "$section" "obfs" ""
+   config_get "obfs_ssr" "$section" "obfs_ssr" ""
+   config_get "obfs_param" "$section" "obfs_param" ""
    config_get "obfs_vmess" "$section" "obfs_vmess" ""
+   config_get "protocol" "$section" "protocol" ""
+   config_get "protocol_param" "$section" "protocol_param" ""
    config_get "host" "$section" "host" ""
    config_get "mux" "$section" "mux" ""
    config_get "custom" "$section" "custom" ""
@@ -185,7 +190,7 @@ yml_servers_set()
    fi
    
    if [ -z "$password" ]; then
-   	 if [ "$type" = "ss" ] || [ "$type" = "trojan" ]; then
+   	 if [ "$type" = "ss" ] || [ "$type" = "trojan" ] || [ "$type" = "ssr" ]; then
         return
      fi
    fi
@@ -278,6 +283,35 @@ EOF
         fi
      fi
    fi
+   
+#ssr
+if [ "$type" = "ssr" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+- name: "$name"
+  type: $type
+  server: $server
+  port: $port
+  cipher: $cipher_ssr
+  password: "$password"
+  obfs: "$obfs_ssr"
+  protocol: "$protocol"
+EOF
+   if [ ! -z "$obfs_param" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+  obfs-param: $obfs_param
+EOF
+   fi
+   if [ ! -z "$protocol_param" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+  protocol-param: $protocol_param
+EOF
+   fi
+   if [ ! -z "$udp" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+  udp: $udp
+EOF
+   fi
+fi
 
 #vmess
    if [ "$type" = "vmess" ]; then
@@ -512,7 +546,7 @@ fi
 
 #一键创建配置文件
 if [ "$rule_sources" = "ConnersHua" ] && [ "$servers_if_update" != "1" ] && [ -z "$if_game_proxy" ]; then
-echo "使用ConnersHua规则创建中..." >$START_LOG
+echo "使用ConnersHua(规则集)规则创建中..." >$START_LOG
 echo "proxy-groups:" >>$SERVER_FILE
 cat >> "$SERVER_FILE" <<-EOF
 - name: Auto - UrlTest
@@ -589,99 +623,6 @@ ${UCI_SET}rule_source="ConnersHua"
 ${UCI_SET}GlobalTV="GlobalTV"
 ${UCI_SET}AsianTV="AsianTV"
 ${UCI_SET}Proxy="Proxy"
-${UCI_SET}Domestic="Domestic"
-${UCI_SET}Others="Others"
-[ "$config_auto_update" -eq 1 ] && [ "$new_servers_group_set" -eq 1 ] && {
-	${UCI_SET}servers_update="1"
-	${UCI_DEL_LIST}="Auto - UrlTest" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Auto - UrlTest" >/dev/null 2>&1
-	${UCI_DEL_LIST}="Proxy" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Proxy" >/dev/null 2>&1
-	${UCI_DEL_LIST}="AsianTV" >/dev/null 2>&1 && ${UCI_ADD_LIST}="AsianTV" >/dev/null 2>&1
-	${UCI_DEL_LIST}="GlobalTV" >/dev/null 2>&1 && ${UCI_ADD_LIST}="GlobalTV" >/dev/null 2>&1
-}
-elif [ "$rule_sources" = "ConnersHua_provider" ] && [ "$servers_if_update" != "1" ] && [ -z "$if_game_proxy" ]; then
-echo "使用ConnersHua(规则集)规则创建中..." >$START_LOG
-echo "proxy-groups:" >>$SERVER_FILE
-cat >> "$SERVER_FILE" <<-EOF
-- name: Auto - UrlTest
-  type: url-test
-EOF
-if [ -f "/tmp/Proxy_Server" ]; then
-cat >> "$SERVER_FILE" <<-EOF
-  proxies:
-EOF
-fi
-cat /tmp/Proxy_Server >> $SERVER_FILE 2>/dev/null
-if [ -f "/tmp/Proxy_Provider" ]; then
-cat >> "$SERVER_FILE" <<-EOF
-  use:
-EOF
-fi
-cat /tmp/Proxy_Provider >> $SERVER_FILE 2>/dev/null
-cat >> "$SERVER_FILE" <<-EOF
-  url: http://www.gstatic.com/generate_204
-  interval: "600"
-- name: Proxy
-  type: select
-  proxies:
-  - Auto - UrlTest
-  - DIRECT
-EOF
-cat /tmp/Proxy_Server >> $SERVER_FILE 2>/dev/null
-if [ -f "/tmp/Proxy_Provider" ]; then
-cat >> "$SERVER_FILE" <<-EOF
-  use:
-EOF
-fi
-cat /tmp/Proxy_Provider >> $SERVER_FILE 2>/dev/null
-cat >> "$SERVER_FILE" <<-EOF
-- name: Domestic
-  type: select
-  proxies:
-  - DIRECT
-  - Proxy
-- name: Others
-  type: select
-  proxies:
-  - Proxy
-  - DIRECT
-  - Domestic
-- name: AdBlock
-  type: select
-  proxies:
-  - REJECT
-  - DIRECT
-  - Proxy
-- name: AsianTV
-  type: select
-  proxies:
-  - DIRECT
-  - Proxy
-EOF
-cat /tmp/Proxy_Server >> $SERVER_FILE 2>/dev/null
-if [ -f "/tmp/Proxy_Provider" ]; then
-cat >> "$SERVER_FILE" <<-EOF
-  use:
-EOF
-fi
-cat /tmp/Proxy_Provider >> $SERVER_FILE 2>/dev/null
-cat >> "$SERVER_FILE" <<-EOF
-- name: GlobalTV
-  type: select
-  proxies:
-  - Proxy
-  - DIRECT
-EOF
-cat /tmp/Proxy_Server >> $SERVER_FILE 2>/dev/null
-if [ -f "/tmp/Proxy_Provider" ]; then
-cat >> "$SERVER_FILE" <<-EOF
-  use:
-EOF
-fi
-cat /tmp/Proxy_Provider >> $SERVER_FILE 2>/dev/null
-${UCI_SET}rule_source="ConnersHua_provider"
-${UCI_SET}GlobalTV="GlobalTV"
-${UCI_SET}AsianTV="AsianTV"
-${UCI_SET}Proxy="Proxy"
 ${UCI_SET}AdBlock="AdBlock"
 ${UCI_SET}Domestic="Domestic"
 ${UCI_SET}Others="Others"
@@ -750,6 +691,20 @@ cat >> "$SERVER_FILE" <<-EOF
   - DIRECT
   - Proxy
 - name: Netflix
+  type: select
+  proxies:
+  - GlobalTV
+  - DIRECT
+EOF
+cat /tmp/Proxy_Server >> $SERVER_FILE 2>/dev/null
+if [ -f "/tmp/Proxy_Provider" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+  use:
+EOF
+fi
+cat /tmp/Proxy_Provider >> $SERVER_FILE 2>/dev/null
+cat >> "$SERVER_FILE" <<-EOF
+- name: Youtube
   type: select
   proxies:
   - GlobalTV
@@ -884,6 +839,7 @@ ${UCI_SET}rule_source="lhie1"
 ${UCI_SET}GlobalTV="GlobalTV"
 ${UCI_SET}AsianTV="AsianTV"
 ${UCI_SET}Proxy="Proxy"
+${UCI_SET}Youtube="Youtube"
 ${UCI_SET}Apple="Apple"
 ${UCI_SET}Microsoft="Microsoft"
 ${UCI_SET}Netflix="Netflix"
@@ -900,6 +856,7 @@ ${UCI_SET}Others="Others"
 	${UCI_SET}servers_update="1"
 	${UCI_DEL_LIST}="Auto - UrlTest" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Auto - UrlTest" >/dev/null 2>&1
 	${UCI_DEL_LIST}="Proxy" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Proxy" >/dev/null 2>&1
+	${UCI_DEL_LIST}="Youtube" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Youtube" >/dev/null 2>&1
 	${UCI_DEL_LIST}="AsianTV" >/dev/null 2>&1 && ${UCI_ADD_LIST}="AsianTV" >/dev/null 2>&1
 	${UCI_DEL_LIST}="GlobalTV" >/dev/null 2>&1 && ${UCI_ADD_LIST}="GlobalTV" >/dev/null 2>&1
 	${UCI_DEL_LIST}="Netflix" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Netflix" >/dev/null 2>&1
