@@ -1,5 +1,5 @@
 msgid "Pass Wall"
-msgstr "PassWall"
+msgstr "科学上网"
 
 msgid "Auto"
 msgstr "自动"
@@ -49,8 +49,8 @@ msgstr "TCP服务器"
 msgid "UDP Server"
 msgstr "UDP服务器"
 
-msgid "Main Settings"
-msgstr "节点选择"
+msgid "Global Settings"
+msgstr "全局设置"
 
 msgid "Basic Settings"
 msgstr "基本设置"
@@ -67,11 +67,17 @@ msgstr "负载均衡"
 msgid "Enter interface"
 msgstr "进入界面"
 
-msgid "Rule Manage"
-msgstr "规则管理"
+msgid "Rule Update"
+msgstr "自动更新"
 
 msgid "Access control"
 msgstr "访问控制"
+
+msgid "Set Blacklist"
+msgstr "黑名单设置"
+
+msgid "Set whitelist"
+msgstr "白名单设置"
 
 msgid "Watch Logs"
 msgstr "查看日志"
@@ -88,9 +94,6 @@ msgstr "百度连接"
 msgid "Google Connection"
 msgstr "谷歌连接"
 
-msgid "GitHub Connection"
-msgstr "GitHub连接"
-
 msgid "Node Check"
 msgstr "节点检测"
 
@@ -99,6 +102,9 @@ msgstr "检测中..."
 
 msgid "Clear"
 msgstr "清除"
+
+msgid "If you can use it, very stable. If not, GG !!!"
+msgstr "如果你会用，稳得一批。否则，GG！！！"
 
 msgid "Main switch"
 msgstr "总开关"
@@ -109,20 +115,11 @@ msgstr "TCP节点"
 msgid "UDP Node"
 msgstr "UDP节点"
 
-msgid "Socks Config"
-msgstr "Socks配置"
-
 msgid "Socks Node"
 msgstr "Socks节点"
 
 msgid "Same as the tcp node"
 msgstr "与TCP节点相同"
-
-msgid "Same as the tcp %s node"
-msgstr "与TCP%s节点相同"
-
-msgid "New process"
-msgstr "另开进程"
 
 msgid "For used to surf the Internet."
 msgstr "用于科学上网。"
@@ -151,26 +148,11 @@ msgstr "如果有问题，请尝试其他模式。<br />如果您没有使用任
 msgid "Use TCP Node Resolve DNS"
 msgstr "使用TCP节点解析DNS"
 
-msgid "Use UDP Node Resolve DNS"
-msgstr "使用UDP节点解析DNS"
-
 msgid "If checked, DNS is resolved using the TCP node."
 msgstr "如果勾选，则使用TCP节点解析DNS解决污染。"
 
-msgid "Socks Server"
-msgstr "Socks服务器"
-
-msgid "Misconfigured"
-msgstr "配置不当"
-
-msgid "Fair Mode"
-msgstr "公平模式"
-
 msgid "DNS Address"
 msgstr "DNS地址"
-
-msgid "DNS Cache"
-msgstr "DNS缓存"
 
 msgid "China DNS Server"
 msgstr "国内DNS服务器"
@@ -274,9 +256,6 @@ msgstr "路由器自身"
 msgid "Danger"
 msgstr "危险"
 
-msgid "Operation"
-msgstr "操作"
-
 msgid "Add Node"
 msgstr "添加节点"
 
@@ -288,39 +267,6 @@ msgstr "SS/SSR/V2ray/Trojan链接"
 
 msgid "Please enter the correct link, ss:// ssr:// vmess:// trojan://"
 msgstr "请输入正确的链接，ss:// ssr:// vmess:// trojan://"
-
-msgid "Clear all nodes"
-msgstr "清空所有节点"
-
-msgid "Are you sure to clear all nodes?"
-msgstr "你确定要清空所有节点吗？"
-
-msgid "Error"
-msgstr "错误"
-
-msgid "Delete select nodes"
-msgstr "删除选择的节点"
-
-msgid "To Top"
-msgstr "置顶"
-
-msgid "Select"
-msgstr "选择"
-
-msgid "DeSelect"
-msgstr "反选"
-
-msgid "Select all"
-msgstr "全选"
-
-msgid "DeSelect all"
-msgstr "全不选"
-
-msgid "Are you sure to delete select nodes?"
-msgstr "你确定要删除选择的节点吗？"
-
-msgid "You no select nodes !"
-msgstr "你没有选择任何节点！"
 
 msgid "Are you sure set to"
 msgstr "你确定要设为"
@@ -343,14 +289,14 @@ msgstr "添加方式"
 msgid "Type"
 msgstr "类型"
 
-msgid "Balancing"
-msgstr "负载均衡"
+msgid "V2ray Balancing"
+msgstr "V2ray 负载均衡"
 
 msgid "V2ray_balancing"
 msgstr "V2ray 负载均衡"
 
-msgid "Shunt"
-msgstr "分流"
+msgid "V2ray Shunt"
+msgstr "V2ray 分流"
 
 msgid "V2ray_shunt"
 msgstr "V2ray 分流"
@@ -367,42 +313,6 @@ msgstr "负载均衡节点列表"
 msgid "Load balancing node list, <a target='_blank' href='https://toutyrater.github.io/routing/balance2.html'>document</a>"
 msgstr "负载均衡节点列表，<a target='_blank' href='https://toutyrater.github.io/routing/balance2.html'>文档原理</a>"
 
-msgid "Share Current"
-msgstr "所见即所得"
-
-msgid "From Share URL"
-msgstr "导入配置信息"
-
-msgid "Build Share URL"
-msgstr "导出配置信息"
-
-msgid "Import Finished"
-msgstr "导入完成："
-
-msgid "Not a supported scheme:"
-msgstr "不支持这种样式的："
-
-msgid "Invalid Share URL Format"
-msgstr "无效的分享信息"
-
-msgid "User cancelled"
-msgstr "用户已取消"
-
-msgid "Paste Share URL Here"
-msgstr "在此处粘贴分享信息"
-
-msgid "Unable share to clipboard, copy to batch mode still:"
-msgstr "无法分享网址到剪贴板，复制到批量导入临时输入："
-
-msgid "Share to clipboard successfully, copy to batch mode still:"
-msgstr "成功复制分享网址到剪贴板和批量导入临时输入："
-
-msgid "Faltal on get option, please help in debug:"
-msgstr "代码错误，请协助捉虫："
-
-msgid "Faltal on set option, please help in debug:"
-msgstr "代码错误，请协助捉虫："
-
 msgid "Address"
 msgstr "地址"
 
@@ -414,12 +324,6 @@ msgstr "验证证书"
 
 msgid "Trojan Cert Path"
 msgstr "证书路径"
-
-msgid "Finger Print"
-msgstr "指纹伪造"
-
-msgid "Shadowsocks2"
-msgstr "二次加密"
 
 msgid "Encrypt Method"
 msgstr "加密"
@@ -453,6 +357,9 @@ msgstr "选中后保存应用后即使用tcping替换ping检测节点"
 
 msgid "Concise display nodes"
 msgstr "简洁显示节点"
+
+msgid "Support for more than 10,000 ping nodes and luci does not crash and not slow."
+msgstr "支持超过10000个节点，而LuCI却不会卡死，更不会崩溃。"
 
 msgid "Apply"
 msgstr "应用"
@@ -586,6 +493,9 @@ msgstr "在浏览器输入路由IP加端口访问，如：192.168.1.1:1188"
 msgid "Haproxy Port"
 msgstr "负载均衡端口"
 
+msgid "Load Balancing Setting"
+msgstr "负载均衡设置"
+
 msgid "Add a node, Export Of Multi WAN Only support Multi Wan. Load specific gravity range 1-256. Multiple primary servers can be load balanced, standby will only be enabled when the primary server is offline! Multiple groups can be set, Haproxy port same one for each group."
 msgstr "添加节点，指定出口功能是为多WAN用户准备的。负载比重范围1-256。多个主服务器可以负载均衡，备用只有在主服务器离线时才会启用！可以设置多个组，负载均衡端口相同则为一组。"
 
@@ -615,15 +525,6 @@ msgstr "备用"
 
 msgid "Manually update"
 msgstr "手动更新"
-
-msgid "Enable custom url"
-msgstr "启用自定义规则地址"
-
-msgid "gfwlist Update url"
-msgstr "GFWList更新URL"
-
-msgid "Chnroute Update url"
-msgstr "国内IP段(Chnroute)更新URL"
 
 msgid "Rule status"
 msgstr "规则版本"
@@ -680,28 +581,31 @@ msgid "Moving..."
 msgstr "移动中"
 
 msgid "App Update"
-msgstr "组件更新"
+msgstr "更新主程序"
 
 msgid "Please confirm that your firmware supports FPU."
 msgstr "请确认你的固件支持FPU。"
 
-msgid "if you want to run from memory, change the path, such as %s, Then save the application and update it manually."
-msgstr "如果你希望从内存中运行，请更改路径，例如%s，然后保存应用后，再手动更新。"
-
-msgid "Make sure there is enough space to install %s"
-msgstr "确保有足够的空间安装%s"
-
 msgid "V2ray Path"
-msgstr "V2ray 路径"
+msgstr "V2ray路径"
 
-msgid "Trojan-Go Path"
-msgstr "Trojan-Go 路径"
+msgid "if you want to run from memory, change the path, such as /tmp/v2ray/, Then save the application and update it manually."
+msgstr "如果你希望从内存中运行，请更改路径，例如/tmp/v2ray/，然后保存应用后，再手动更新。"
 
 msgid "Kcptun Client Path"
-msgstr "Kcptun 客户端路径"
+msgstr "Kcptun客户端路径"
+
+msgid "if you want to run from memory, change the path, such as /tmp/kcptun-client, Then save the application and update it manually."
+msgstr "如果你希望从内存中运行，请更改路径，例如/tmp/kcptun-client，然后保存应用后，再手动更新。"
+
+msgid "Make sure there is enough space to install Kcptun"
+msgstr "确保有足够的空间安装Kcptun"
 
 msgid "Brook Path"
-msgstr "Brook 路径"
+msgstr "Brook路径"
+
+msgid "if you want to run from memory, change the path, such as /tmp/brook, Then save the application and update it manually."
+msgstr "如果你希望从内存中运行，请更改路径，例如/tmp/brook，然后保存应用后，再手动更新。"
 
 msgid "Node Subscribe"
 msgstr "节点订阅"
@@ -742,9 +646,6 @@ msgstr "关键字丢弃"
 msgid "When checked, the keywords in the list are discarded. Otherwise, it is not discarded."
 msgstr "当勾选时，将丢弃包含列表里的关键字的节点。否则，将保留列表的关键字的节点（反过来）。"
 
-msgid "Whether unsafe connections are allowed. When checked, V2Ray does not check the validity of the TLS certificate provided by the remote host by default."
-msgstr "是否允许不安全连接。当勾选时，缺省情况下客户端不会检查远端主机所提供的 TLS 证书的有效性。"
-
 msgid "Add"
 msgstr "添加"
 
@@ -757,23 +658,35 @@ msgstr "访问控制列表是用于指定特殊IP代理模式的工具。IP、MA
 msgid "Remarks"
 msgstr "备注"
 
-msgid "Direct List"
-msgstr "直连列表"
+msgid "Set Blacklist And Whitelist"
+msgstr "黑白名单"
 
-msgid "Proxy List"
-msgstr "代理列表"
+msgid "Whitelist Hosts"
+msgstr "域名白名单"
 
-msgid "Join the direct hosts list of domain names will not proxy."
-msgstr "加入的域名不走代理，对所有模式有效。且优先级最高。"
+msgid "Whitelist IP"
+msgstr "IP白名单"
 
-msgid "These had been joined ip addresses will not proxy. Please input the ip address or ip address segment,every line can input only one ip address. For example: 192.168.0.0/24 or 223.5.5.5."
-msgstr "加入的IP段不走代理，对所有模式有效。且优先级最高。可输入IP地址或地址段，如：192.168.0.0/24或223.5.5.5，每个地址段一行。"
+msgid "Blacklist Hosts"
+msgstr "域名黑名单"
 
-msgid "These had been joined websites will use proxy. Please input the domain names of websites,every line can input only one website domain. For example: google.com."
-msgstr "加入的域名将走代理。输入网站域名，如：google.com，每个地址段一行。"
+msgid "Blacklist IP"
+msgstr "IP黑名单"
 
-msgid "These had been joined ip addresses will use proxy.Please input the ip address or ip address segment,every line can input only one ip address.For example: 35.24.0.0/24 or 8.8.4.4."
-msgstr "加入的IP段将走代理。可输入IP地址或地址段，如：35.24.0.0/24或8.8.4.4，每个地址段一行。"
+msgid "Router Hosts"
+msgstr "路由器本机黑名单"
+
+msgid "Join the white list of domain names will not go agent."
+msgstr "加入的域名不走代理通道，对所有模式有效。且优先于黑名单。"
+
+msgid "These had been joined ip addresses will not use proxy.Please input the ip address or ip address segment,every line can input only one ip address.For example,192.168.0.0/24 or 223.5.5.5."
+msgstr "加入的IP段不走代理通道，对所有模式有效。且优先于黑名单。可输入IP地址或地址段，如：192.168.0.0/24或223.5.5.5，每个地址段一行。"
+
+msgid "These had been joined websites will use proxy.Please input the domain names of websites,every line can input only one website domain.For example,google.com."
+msgstr "加入的域名将走代理，对所有模式有效。输入网站域名，如：google.com，每个地址段一行。"
+
+msgid "These had been joined ip addresses will use proxy.Please input the ip address or ip address segment,every line can input only one ip address.For example,35.24.0.0/24 or 8.8.4.4."
+msgstr "加入的IP段将走代理，对所有模式有效。可输入IP地址或地址段，如：35.24.0.0/24或8.8.4.4，每个地址段一行。"
 
 msgid "Clear logs"
 msgstr "清空日志"
@@ -928,60 +841,6 @@ msgstr "隐藏菜单方法，地址栏输入例："
 msgid "After the hidden to the display, input example in the address bar:"
 msgstr "当你隐藏后想再次显示，地址栏输入例："
 
-msgid "When OTA is enabled, V2Ray will reject connections that are not OTA enabled. This option is invalid when using AEAD encryption."
-msgstr "开启 OTA 后，V2Ray 会拒绝未启用 OTA 的连接。当使用 AEAD 加密时，该选项无效。"
-
-msgid "transit node"
-msgstr "中转到此节点"
-
-msgid "Bind Local"
-msgstr "本机监听"
-
-msgid "When selected, it can only be accessed locally,It is recommended to turn on when using reverse proxies."
-msgstr "当勾选时，只能由本机访问此端口，当开启反向代理时建议勾选此项。"
-
-msgid "Accept LAN Access"
-msgstr "接受局域网访问"
-
-msgid "When selected, it can accessed lan , this will not be safe!"
-msgstr "当勾选时，可以直接访问局域网，这将不安全！（非特殊情况不建议开启）"
-
-msgid "Enable Remote"
-msgstr "启用转发"
-
-msgid "You can forward to Nginx/Caddy/V2ray WebSocket and more."
-msgstr "您可以转发到Nginx/Caddy/V2ray WebSocket等。"
-
-msgid "Remote Address"
-msgstr "远程地址"
-
-msgid "Remote Port"
-msgstr "远程端口"
-
-msgid "as:"
-msgstr "如："
-
-msgid "Public key absolute path"
-msgstr "公钥文件绝对路径"
-
-msgid "Private key absolute path"
-msgstr "私钥文件绝对路径"
-
-msgid "Server-Side"
-msgstr "服务器端"
-
-msgid "Server Config"
-msgstr "服务器配置"
-
-msgid "Users Manager"
-msgstr "用户管理"
-
-msgid "Logs"
-msgstr "日志"
-
-msgid "UDP Forward"
-msgstr "UDP转发"
-
 msgid "Can't determine ARCH, or ARCH not supported."
 msgstr "无法确认ARCH架构，或是不支持。"
 
@@ -1011,6 +870,3 @@ msgstr "客户端文件不适合当前设备。"
 
 msgid "Can't move new file to path: %s"
 msgstr "无法移动新文件到：%s"
-
-msgid "DNS Settings"
-msgstr "DNS设置"
