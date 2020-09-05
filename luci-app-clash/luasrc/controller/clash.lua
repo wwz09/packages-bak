@@ -11,7 +11,7 @@ function index()
 		return
 	end
 
-	local page = entry({"admin", "services", "clash"},alias("admin", "services", "clash", "overview"), _("Clash"), 5)
+	local page = entry({"admin", "services", "clash"},alias("admin", "services", "clash", "overview"), _("Clash"), 1)
 	page.dependent = true
 	page.acl_depends = {"luci-app-clash"}
 	
@@ -56,6 +56,7 @@ function index()
 	entry({"admin", "services", "clash", "doupdate"}, call("do_update")).leaf=true
 	entry({"admin", "services", "clash", "start"}, call("do_start")).leaf=true
 	entry({"admin", "services", "clash", "stop"}, call("do_stop")).leaf=true
+	entry({"admin", "services", "clash", "reload"}, call("do_reload")).leaf=true
 	entry({"admin", "services", "clash", "geo"}, call("geoip_check")).leaf=true
 	entry({"admin", "services", "clash", "geoipupdate"}, call("geoip_update")).leaf=true
 	entry({"admin", "services", "clash", "check_geoip"}, call("check_geoip_log")).leaf=true	
@@ -118,11 +119,6 @@ end
 
 local function in_use()
 	return luci.sys.exec("uci get clash.config.config_type")
-end
-
-
-local function ping_enable()
-	return luci.sys.exec("uci get clash.config.ping_enable")
 end
 
 
@@ -387,6 +383,12 @@ end
 function do_stop()
 	luci.sys.exec('uci set clash.config.enable="0" && uci commit clash')
 	luci.sys.exec("/etc/init.d/clash stop 2>&1 &")
+end
+
+function do_reload()
+	if luci.sys.call("pidof clash >/dev/null") == 0 then
+		luci.sys.exec("/etc/init.d/clash reload 2>&1 &")
+	end	
 end
 
 function check_update_log()
