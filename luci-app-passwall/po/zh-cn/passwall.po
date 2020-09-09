@@ -70,6 +70,9 @@ msgstr "进入界面"
 msgid "Rule Manage"
 msgstr "规则管理"
 
+msgid "Rule List Manage"
+msgstr "直连/代理名单管理"
+
 msgid "Access control"
 msgstr "访问控制"
 
@@ -101,7 +104,7 @@ msgid "Clear"
 msgstr "清除"
 
 msgid "Main switch"
-msgstr "总开关"
+msgstr "主开关"
 
 msgid "TCP Node"
 msgstr "TCP节点"
@@ -124,38 +127,74 @@ msgstr "与TCP%s节点相同"
 msgid "New process"
 msgstr "另开进程"
 
-msgid "For used to surf the Internet."
-msgstr "用于科学上网。"
+msgid "Current node: %s"
+msgstr "当前节点：%s"
 
-msgid "For Game Mode or DNS resolution and more."
-msgstr "用于游戏模式或DNS解析等。"
+msgid "For proxy specific list."
+msgstr "用于代理特定的列表。"
+
+msgid "For proxy game network, DNS hijack etc."
+msgstr "用于代理游戏或DNS劫持等..."
 
 msgid "The selected server will not use Kcptun."
 msgstr "选中的服务器不会使用Kcptun。"
 
-msgid "The client can use the router's Socks proxy."
-msgstr "客户端可以使用路由器的Socks代理。"
+msgid "The client can use the router's Socks Servie."
+msgstr "客户端可以使用路由器的 Socks 服务。"
 
-msgid "DNS Mode"
-msgstr "DNS模式"
+msgid "Filter Mode"
+msgstr "过滤模式"
 
-msgid "Use local port 7913 as DNS"
-msgstr "使用本机7913端口的DNS"
+msgid "No Filter"
+msgstr "不过滤"
 
-msgid "No patterns are used"
-msgstr "不使用"
+msgid "Custom DNS"
+msgstr "自定义DNS"
 
-msgid "if has problem, please try another mode.<br />if you use no patterns are used, DNS of wan will be used by default as upstream of dnsmasq."
-msgstr "如果有问题，请尝试其他模式。<br />如果您没有使用任何模式，则会使用WAN的DNS。"
+msgid "IP:Port mode ecceptable for specify other filtered name services."
+msgstr "定义接受 IP:Port 形式的输入，以指定其它域名服务的过滤服务。"
 
-msgid "Use TCP Node Resolve DNS"
-msgstr "使用TCP节点解析DNS"
+msgid "Resolver For Local/WhiteList Domains"
+msgstr "解析本地和白名单域名"
 
-msgid "Use UDP Node Resolve DNS"
-msgstr "使用UDP节点解析DNS"
+msgid "IP:Port mode acceptable, multi value split with english comma."
+msgstr "接受 IP:Port 形式的输入，多个以英文逗号分隔。"
 
-msgid "If checked, DNS is resolved using the TCP node."
-msgstr "如果勾选，则使用TCP节点解析DNS解决污染。"
+msgid "When the selection is not the default, this DNS is forced to be set to dnsmasq upstream DNS."
+msgstr "当选择的不是默认，则将此DNS强制设置为dnsmasq上游DNS。"
+
+msgid "When custom, Please follow the format strictly:"
+msgstr "当自定义时，请严格遵循以下格式："
+
+msgid "Use ChinaDNS-NG"
+msgstr "使用ChinaDNS-NG"
+
+msgid "When checked, forced to be set to dnsmasq upstream DNS."
+msgstr "当勾选，则将强制设置为dnsmasq上游DNS。"
+
+msgid "Use ChinaList"
+msgstr "使用chnlist"
+
+msgid "Only useful in non-gfwlist mode."
+msgstr "仅可用于非防火墙表。"
+
+msgid "When used, the domestic DNS will be used only when the chnlist rule is hit, and the domain name that misses the rule will be resolved by remote DNS."
+msgstr "当使用时，只有当命中chnlist规则时，才会使用国内DNS，未命中规则的域名将会使用远程DNS解析。"
+
+msgid "Ali"
+msgstr "阿里"
+
+msgid "Baidu"
+msgstr "百度"
+
+msgid "Resolver For The List Proxied"
+msgstr "解析被代理的域名列表"
+
+msgid "Requery DNS By %s"
+msgstr "通过%s请求DNS"
+
+msgid "Forward To Socks Server"
+msgstr "转发至 Socks 服务器"
 
 msgid "Socks Server"
 msgstr "Socks服务器"
@@ -163,26 +202,41 @@ msgstr "Socks服务器"
 msgid "Misconfigured"
 msgstr "配置不当"
 
-msgid "Fair Mode"
-msgstr "公平模式"
+msgid "Make sure socks service is available on this address."
+msgstr "请确保此Socks服务可用。"
 
-msgid "DNS Address"
-msgstr "DNS地址"
+msgid "ChinaDNS-NG Fair Mode"
+msgstr "ChinaDNS-NG 公平模式"
 
-msgid "DNS Cache"
-msgstr "DNS缓存"
+msgid "Filtered DNS(For Proxied Domains)"
+msgstr "域名过滤服务(用于被代理的域名)"
 
-msgid "China DNS Server"
-msgstr "国内DNS服务器"
+msgid "DoH request address"
+msgstr "DoH 请求地址"
 
-msgid "If you want to work with other DNS acceleration services, use the default.<br />Only use two at most, english comma separation, If you do not fill in the # and the following port, you are using port 53."
-msgstr "如果你想和其他DNS加速服务一起工作，请使用默认。<br />最多使用2个DNS服务器，英文逗号分隔，如果没有填#和后面的端口，则使用53端口。"
+msgid "DoH bootstrap DNS"
+msgstr "DoH Bootstrap DNS"
 
-msgid "Upstream trust DNS Server for ChinaDNS-NG"
-msgstr "ChinaDNS-NG可信DNS"
+msgid "The Bootstrap DNS server is used to resolve the IP address of the DoH resolver you specify as the upstream."
+msgstr "Bootstrap DNS 服务器用于解析您指定为上游的 DoH 解析器的 IP 地址。"
 
-msgid "You can use other resolving DNS services as trusted DNS, Example: dns2socks, dns-forwarder... 127.0.0.1#5353<br />Only use two at most, english comma separation, If you do not fill in the # and the following port, you are using port 53."
-msgstr "你可以使用其他解决污染DNS服务作为可信DNS，例：dns2socks，dns-forwarder等等。127.0.0.1#5353<br />最多使用2个DNS服务器，英文逗号分隔，如果没有填#和后面的端口，则使用53端口。"
+msgid "IP:Port mode acceptable, the 1st for 'dns2socks' if split with english comma."
+msgstr "接受 IP:Port 形式的输入，多个以英文逗号分隔 ，'dns2socks' 模式下仅首个有效。"
+
+msgid "Cache Resolved"
+msgstr "缓存解析结果"
+
+msgid "Dnsmasq default dns"
+msgstr "Dnsmasq的默认DNS"
+
+msgid "When the accessed domain name does not exist in the rule list, the default DNS used."
+msgstr "当访问的域名不存在规则列表中，使用的默认DNS。"
+
+msgid "Clear IPSET"
+msgstr "清空 IPSET"
+
+msgid "Try this feature if the rule modification does not take effect."
+msgstr "如果修改规则后没有生效，请尝试此功能。"
 
 msgid "The server client can also use this rule to scientifically surf the Internet."
 msgstr "本机服务器的客户端也可以使用这个代理模式上网。"
@@ -196,15 +250,6 @@ msgstr "可以使用负载均衡实现故障切换功能。"
 msgid "Restore the default configuration method. Input example in the address bar:"
 msgstr "恢复默认配置方法，地址栏输入例："
 
-msgid "dnsbyisp"
-msgstr "运营商DNS(自动分配)"
-
-msgid "Ali"
-msgstr "阿里"
-
-msgid "Baidu"
-msgstr "百度"
-
 msgid "DNS Export Of Multi WAN"
 msgstr "国内DNS指定解析出口"
 
@@ -217,17 +262,8 @@ msgstr "只有多线接入才有效。"
 msgid "Not Specify"
 msgstr "不指定"
 
-msgid "DNS Hijack"
-msgstr "DNS劫持"
-
 msgid "custom"
 msgstr "自定义"
-
-msgid "DNS Server"
-msgstr "DNS服务器"
-
-msgid "Use Socks Node Resolve DNS"
-msgstr "使用Socks节点解析DNS"
 
 msgid "Multi Process Option"
 msgstr "多进程并发"
@@ -254,16 +290,16 @@ msgid "Global Proxy"
 msgstr "全局代理"
 
 msgid "GFW List"
-msgstr "GFW名单"
+msgstr "防火墙表"
 
-msgid "China WhiteList"
-msgstr "大陆白名单"
+msgid "Not China List"
+msgstr "中国列表以外"
 
 msgid "Game Mode"
 msgstr "游戏模式"
 
-msgid "Return Home"
-msgstr "回国模式"
+msgid "China List"
+msgstr "中国列表"
 
 msgid "Localhost"
 msgstr "本机"
@@ -505,6 +541,9 @@ msgstr "TCP转发端口"
 msgid "UDP Redir Ports"
 msgstr "UDP转发端口"
 
+msgid "No patterns are used"
+msgstr "不使用"
+
 msgid "All"
 msgstr "所有"
 
@@ -559,11 +598,11 @@ msgstr "检测时间"
 msgid "Automatic switching cannot be used when this option is checked"
 msgstr "当勾选此选项时，不能使用自动切换"
 
+msgid "Main node"
+msgstr "主节点"
+
 msgid "List of backup nodes"
 msgstr "备用节点的列表"
-
-msgid "List of backup nodes, the first of which must be the primary node and the others the standby node."
-msgstr "备用节点的列表，第一个必须是主节点，其他是备用节点。"
 
 msgid "Configure this node with 127.0.0.1: this port"
 msgstr "使用127.0.0.1和此端口配置节点"
@@ -604,6 +643,9 @@ msgstr "负载比重"
 msgid "Export Of Multi WAN"
 msgstr "多WAN指定出口"
 
+msgid "Main"
+msgstr "主要"
+
 msgid "Mode"
 msgstr "模式"
 
@@ -616,14 +658,17 @@ msgstr "备用"
 msgid "Manually update"
 msgstr "手动更新"
 
-msgid "Enable custom url"
+msgid "Enable custom URL"
 msgstr "启用自定义规则地址"
 
-msgid "gfwlist Update url"
-msgstr "GFWList更新URL"
+msgid "GFW domains(gfwlist) Update URL"
+msgstr "防火墙域名列表(gfwlist)更新URL"
 
-msgid "Chnroute Update url"
-msgstr "国内IP段(Chnroute)更新URL"
+msgid "China IPs(chnroute) Update URL"
+msgstr "中国IP段(chnroute)更新URL"
+
+msgid "China IPv6s(chnroute6) Update URL"
+msgstr "中国IPv6段(chnroute6)更新URL"
 
 msgid "Rule status"
 msgstr "规则版本"
@@ -703,6 +748,12 @@ msgstr "Kcptun 客户端路径"
 msgid "Brook Path"
 msgstr "Brook 路径"
 
+msgid "Trojan-Go Version API"
+msgstr "Trojan-Go 版本 API"
+
+msgid "alternate API URL for version checking"
+msgstr "用于版本检查的 API URL"
+
 msgid "Node Subscribe"
 msgstr "节点订阅"
 
@@ -742,9 +793,6 @@ msgstr "关键字丢弃"
 msgid "When checked, the keywords in the list are discarded. Otherwise, it is not discarded."
 msgstr "当勾选时，将丢弃包含列表里的关键字的节点。否则，将保留列表的关键字的节点（反过来）。"
 
-msgid "Whether unsafe connections are allowed. When checked, V2Ray does not check the validity of the TLS certificate provided by the remote host by default."
-msgstr "是否允许不安全连接。当勾选时，缺省情况下客户端不会检查远端主机所提供的 TLS 证书的有效性。"
-
 msgid "Add"
 msgstr "添加"
 
@@ -774,6 +822,12 @@ msgstr "加入的域名将走代理。输入网站域名，如：google.com，�
 
 msgid "These had been joined ip addresses will use proxy.Please input the ip address or ip address segment,every line can input only one ip address.For example: 35.24.0.0/24 or 8.8.4.4."
 msgstr "加入的IP段将走代理。可输入IP地址或地址段，如：35.24.0.0/24或8.8.4.4，每个地址段一行。"
+
+msgid "Not valid domain name, please re-enter!"
+msgstr "不是有效域名，请重新输入！"
+
+msgid "Not valid IP format, please re-enter!"
+msgstr "不是有效IP格式，请重新输入！"
 
 msgid "Clear logs"
 msgstr "清空日志"
@@ -853,6 +907,9 @@ msgstr "Brook协议"
 msgid "Use TLS"
 msgstr "使用TLS"
 
+msgid "Naiveproxy Protocol"
+msgstr "Naiveproxy协议"
+
 msgid "V2ray Protocol"
 msgstr "V2ray协议"
 
@@ -871,14 +928,20 @@ msgstr "伪装类型"
 msgid "Transport Layer Encryption"
 msgstr "传输层加密"
 
-msgid "Whether or not transport layer encryption is enabled, the supported options are \"none\" for unencrypted (default) and \"TLS\" for using TLS."
-msgstr "是否启入传输层加密，支持的选项有 \"none\" 表示不加密（默认值），\"tls\" 表示使用 TLS。"
+msgid "Whether or not transport layer encryption is enabled, the supported options are \"none\" for unencrypted and \"TLS\" for using TLS."
+msgstr "是否启入传输层加密，支持的选项有 \"none\" 表示不加密，\"tls\" 表示使用 TLS。"
+
+msgid "'none' not supported for original Trojan, please choose 'tls'."
+msgstr "原版Trojan不支持'none'，请选择TLS。"
 
 msgid "Domain"
 msgstr "域名"
 
-msgid "Whether unsafe connections are allowed. When checked, V2Ray does not check the validity of the TLS certificate provided by the remote host."
-msgstr "是否允许不安全连接。当勾选时，V2Ray 不会检查远端主机所提供的 TLS 证书的有效性。"
+msgid "allowInsecure"
+msgstr "允许不安全连接"
+
+msgid "Whether unsafe connections are allowed. When checked, Certificate validation will be skipped."
+msgstr "是否允许不安全连接。当勾选时，将跳过证书验证。"
 
 msgid "<br />none: default, no masquerade, data sent is packets with no characteristics.<br />srtp: disguised as an SRTP packet, it will be recognized as video call data (such as FaceTime).<br />utp: packets disguised as uTP will be recognized as bittorrent downloaded data.<br />wechat-video: packets disguised as WeChat video calls.<br />dtls: disguised as DTLS 1.2 packet.<br />wireguard: disguised as a WireGuard packet. (not really WireGuard protocol)"
 msgstr "<br />none：默认值，不进行伪装，发送的数据是没有特征的数据包。<br />srtp：伪装成 SRTP 数据包，会被识别为视频通话数据（如 FaceTime）。<br />utp：伪装成 uTP 数据包，会被识别为 BT 下载数据。<br />wechat-video：伪装成微信视频通话的数据包。<br />dtls：伪装成 DTLS 1.2 数据包。<br />wireguard：伪装成 WireGuard 数据包。(并不是真正的 WireGuard 协议)"
@@ -913,14 +976,17 @@ msgstr "节点数量"
 msgid "You can only set up a maximum of %s nodes for the time being, Used for access control."
 msgstr "目前最多只能设置%s个节点，用于给访问控制使用。"
 
-msgid "Status Use Big Icon"
-msgstr "状态信息使用大图标"
+msgid "Status info"
+msgstr "状态信息"
 
-msgid "Status Show Check Port"
-msgstr "状态信息显示节点检测"
+msgid "Big icon"
+msgstr "大图标"
 
-msgid "Status Show IP111"
-msgstr "状态信息显示IP111"
+msgid "Show node check"
+msgstr "显示节点检测"
+
+msgid "Show Show IP111"
+msgstr "显示IP111"
 
 msgid "Hide menu method, input example in the address bar:"
 msgstr "隐藏菜单方法，地址栏输入例："
@@ -928,8 +994,11 @@ msgstr "隐藏菜单方法，地址栏输入例："
 msgid "After the hidden to the display, input example in the address bar:"
 msgstr "当你隐藏后想再次显示，地址栏输入例："
 
-msgid "When OTA is enabled, V2Ray will reject connections that are not OTA enabled. This option is invalid when using AEAD encryption."
-msgstr "开启 OTA 后，V2Ray 会拒绝未启用 OTA 的连接。当使用 AEAD 加密时，该选项无效。"
+msgid "The MTProto protocol must be 32 characters and can only contain characters from 0 to 9 and a to f."
+msgstr "MTProto 协议必须为 32 个字符，仅可包含 0 到 9 和 a 到 f 之间的字符。"
+
+msgid "When OTA is enabled, a connection that is not OTA enabled is rejected. This option is invalid when using AEAD encryption."
+msgstr "开启 OTA 后，将拒绝未启用 OTA 的连接。当使用 AEAD 加密时，该选项无效。"
 
 msgid "transit node"
 msgstr "中转到此节点"
