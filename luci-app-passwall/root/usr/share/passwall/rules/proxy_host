@@ -29,7 +29,6 @@ blinkbox.com
 brightcove.com
 caddyserver.com
 cbs.com
-cloudflare-dns.com
 cloudfront.net
 conviva.com
 crackle.com
@@ -38,8 +37,6 @@ crwdcntrl.net
 cwtv.com
 disney.com
 disneyjunior.com
-dns.google
-dns.quad9.net
 easylist-downloads.adblockplus.org
 edgecastcdn.net
 edgekey.net
@@ -60,9 +57,6 @@ githubassets.com
 githubusercontent.com
 gnews.org
 go.com
-google.com
-google.com.hk
-google.com.tw
 googleapis.com
 googletagmanager.com
 googleusercontent.com
@@ -106,7 +100,6 @@ nflximg.net
 nflxso.net
 nflxvideo.net
 omtrdc.net
-one.one.one.one
 open.live.bbc.co.uk
 openwrt.proxy.ustclug.org
 openx.net
@@ -124,7 +117,6 @@ sling.com
 southpark.cc.com
 spike.com
 srip.net
-stripe.com
 theplatform.com
 ttvnw.net
 turner.com
@@ -132,7 +124,6 @@ turnin.com
 tvb.com
 twitch.tv
 uplynk.com
-v2fly.org
 vudu.com
 warnerbros.com
 wdtvlive.com
@@ -141,4 +132,3 @@ xboxlive.com
 youtu.be
 youtube.com
 ytimg.com
-zerotier.com

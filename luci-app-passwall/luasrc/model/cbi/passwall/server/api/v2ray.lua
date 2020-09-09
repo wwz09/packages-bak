@@ -8,20 +8,17 @@ function gen_config(user)
         {protocol = "freedom", tag = "direct"}, {protocol = "blackhole", tag = "blocked"}
     }
 
-    if user.protocol == "vmess" or user.protocol == "vless" then
-        if user.uuid then
+    if user.protocol == "vmess" then
+        if user.vmess_id then
             local clients = {}
-            for i = 1, #user.uuid do
+            for i = 1, #user.vmess_id do
                 clients[i] = {
-                    id = user.uuid[i],
+                    id = user.vmess_id[i],
                     level = tonumber(user.level),
                     alterId = tonumber(user.alter_id)
                 }
             end
-            settings = {
-                clients = clients,
-                decryption = user.decryption or "none"
-            }
+            settings = {clients = clients}
         end
     elseif user.protocol == "socks" then
         settings = {
@@ -45,7 +42,7 @@ function gen_config(user)
         }
     elseif user.protocol == "shadowsocks" then
         settings = {
-            method = user.method,
+            method = user.v_ss_encrypt_method,
             password = user.password,
             level = tonumber(user.level) or 1,
             network = user.ss_network or "TCP,UDP",
@@ -76,12 +73,9 @@ function gen_config(user)
     if user.transit_node and user.transit_node ~= "nil" then
         local node = ucic:get_all("passwall", user.transit_node)
         if node and node ~= "nil" and node.type and node.type == "V2ray" then
-            if node.transport == "mkcp" or node.transport == "ds" or node.transport == "quic" then
-                node.stream_security = "none"
-            end
             local transit_node = {
                 tag = "transit",
-                protocol = node.protocol,
+                protocol = node.protocol or "vmess",
                 mux = {
                     enabled = (node.mux == "1") and true or false,
                     concurrency = (node.mux_concurrency) and tonumber(node.mux_concurrency) or 8
@@ -134,17 +128,16 @@ function gen_config(user)
                     } or nil
                 },
                 settings = {
-                    vnext = (node.protocol == "vmess" or node.protocol == "vless") and {
+                    vnext = (node.protocol == "vmess") and {
                         {
                             address = node.address,
                             port = tonumber(node.port),
                             users = {
                                 {
-                                    id = node.uuid,
+                                    id = node.vmess_id,
                                     alterId = tonumber(node.alter_id),
-                                    level = node.level and tonumber(node.level) or 0,
-                                    security = node.security,
-                                    encryption = node.encryption or "none"
+                                    level = tonumber(node.level),
+                                    security = node.security
                                 }
                             }
                         }
@@ -167,6 +160,12 @@ function gen_config(user)
                     } or nil
                 }
             }
+
+            if node.transport == "mkcp" or node.transport == "ds" or node.transport == "quic" then
+                transit_node.streamSettings.security = "none"
+                transit_node.streamSettings.tlsSettings = nil
+            end
+
             table.insert(outbounds, 1, transit_node)
         end
     end

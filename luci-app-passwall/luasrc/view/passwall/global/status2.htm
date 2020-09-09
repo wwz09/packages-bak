@@ -1,11 +1,21 @@
 <%
-local dsp = require "luci.dispatcher"
 local api = require "luci.model.cbi.passwall.api.api"
+local dsp = require "luci.dispatcher"
+local ipkg = require "luci.model.ipkg"
+
+local function is_finded(e)
+	local result=luci.sys.exec("find /usr/*bin -iname "..e.." -type f")
+	if result~="" then
+		return true
+	end
+	return false
+end
 
 local tcp_node_num = api.uci_get_type("global_other", "tcp_node_num", 1)
 local udp_node_num = api.uci_get_type("global_other", "udp_node_num", 1)
 
-local status = api.uci_get_type("global_other", "status", "")
+local status_show_check_port = api.uci_get_type("global_other", "status_show_check_port", 0)
+local status_show_ip111 = api.uci_get_type("global_other", "status_show_ip111", 0)
 -%>
 
 <style>
@@ -71,7 +81,7 @@ local status = api.uci_get_type("global_other", "status", "")
 			</div>
 		</div>
 		
-		<% if api.is_finded("kcptun-client") then %>
+		<% if ipkg.installed("kcptun") or is_finded("kcptun*") then %>
 			<div class="cbi-value">
 				<label class="cbi-value-title">Kcptun
 					<%:Status%>
@@ -82,7 +92,7 @@ local status = api.uci_get_type("global_other", "status", "")
 			</div>
 		<% end %>
 		
-		<% if api.is_finded("haproxy") then %>
+		<% if ipkg.installed("haproxy") or is_finded("haproxy*") then %>
 		<div class="cbi-value">
 			<label class="cbi-value-title">
 				<%:Load Balancing%>
@@ -129,7 +139,7 @@ local status = api.uci_get_type("global_other", "status", "")
 				<font id="_github_status"></font>
 			</div>
 		</div>
-		<% if status:find("show_check_port") then %>
+		<% if tonumber(status_show_check_port) == 1 then %>
 		<div class="cbi-value">
 			<label class="cbi-value-title">
 				<%:Node Check%>
@@ -141,7 +151,7 @@ local status = api.uci_get_type("global_other", "status", "")
 			</div>
 		</div>
 		<% end %>
-		<% if status:find("show_ip111") then %>
+		<% if tonumber(status_show_ip111) == 1 then %>
 		<div class="cbi-value">
 			<label class="cbi-value-title"></label>
 			<div class="cbi-value-field">

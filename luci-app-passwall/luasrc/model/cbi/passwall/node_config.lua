@@ -1,7 +1,19 @@
 local d = require "luci.dispatcher"
+local ipkg = require("luci.model.ipkg")
 local uci = require"luci.model.uci".cursor()
 local api = require "luci.model.cbi.passwall.api.api"
+
 local appname = "passwall"
+
+local function get_customed_path(e)
+    return api.uci_get_type("global_app", e .. "_file")
+end
+
+local function is_finded(e)
+    return luci.sys.exec("find /usr/*bin %s -iname %s -type f" % {get_customed_path(e), e}) ~= "" and true or false
+end
+
+local function is_installed(e) return ipkg.installed(e) end
 
 local ss_encrypt_method_list = {
     "rc4-md5", "aes-128-cfb", "aes-192-cfb", "aes-256-cfb", "aes-128-ctr",
@@ -70,39 +82,30 @@ remarks.default = translate("Remarks")
 remarks.rmempty = false
 
 type = s:option(ListValue, "type", translate("Type"))
-if api.is_finded("ipt2socks") then
+if is_installed("ipt2socks") or is_finded("ipt2socks") then
     type:value("Socks", translate("Socks"))
 end
-if api.is_finded("ss-redir") then
+if is_finded("ss-redir") then
     type:value("SS", translate("Shadowsocks"))
 end
-if api.is_finded("ssr-redir") then
+if is_finded("ssr-redir") then
     type:value("SSR", translate("ShadowsocksR"))
 end
-if api.is_finded("v2ray") then
+if is_installed("v2ray") or is_finded("v2ray") then
     type:value("V2ray", translate("V2ray"))
 end
-if api.is_finded("brook") then
+if is_installed("brook") or is_finded("brook") then
     type:value("Brook", translate("Brook"))
 end
---[[
-if api.is_finded("trojan-plus") or api.is_finded("trojan") then
-    type:value("Trojan", translate("Trojan"))
+if is_installed("trojan") or is_finded("trojan") then
+    type:value("Trojan", translate("Trojan-Plus"))
 end
-]]--
-if api.is_finded("trojan-plus") then
-    type:value("Trojan-Plus", translate("Trojan-Plus"))
-end
-if api.is_finded("trojan-go") then
+if is_installed("trojan-go") or is_finded("trojan-go") then
     type:value("Trojan-Go", translate("Trojan-Go"))
-end
-if api.is_finded("naive") then
-    type:value("Naiveproxy", translate("NaiveProxy"))
 end
 
 protocol = s:option(ListValue, "protocol", translate("Protocol"))
 protocol:value("vmess", translate("Vmess"))
-protocol:value("vless", translate("VLESS"))
 protocol:value("http", translate("HTTP"))
 protocol:value("socks", translate("Socks"))
 protocol:value("shadowsocks", translate("Shadowsocks"))
@@ -145,31 +148,13 @@ for k, v in pairs(nodes_table) do default_node:value(v.id, v.remarks) end
 default_node:depends("protocol", "_shunt")
 
 -- Brook协议
-brook_protocol = s:option(ListValue, "brook_protocol", translate("Protocol"))
+brook_protocol = s:option(ListValue, "brook_protocol", translate("Brook Protocol"))
 brook_protocol:value("client", translate("Brook"))
 brook_protocol:value("wsclient", translate("WebSocket"))
 brook_protocol:depends("type", "Brook")
-function brook_protocol.cfgvalue(self, section)
-	return m:get(section, "protocol")
-end
-function brook_protocol.write(self, section, value)
-	m:set(section, "protocol", value)
-end
 
 brook_tls = s:option(Flag, "brook_tls", translate("Use TLS"))
 brook_tls:depends("brook_protocol", "wsclient")
-
--- Naiveproxy协议
-naiveproxy_protocol = s:option(ListValue, "naiveproxy_protocol", translate("Protocol"))
-naiveproxy_protocol:value("https", translate("HTTPS"))
-naiveproxy_protocol:value("quic", translate("QUIC"))
-naiveproxy_protocol:depends("type", "Naiveproxy")
-function naiveproxy_protocol.cfgvalue(self, section)
-	return m:get(section, "protocol")
-end
-function naiveproxy_protocol.write(self, section, value)
-	m:set(section, "protocol", value)
-end
 
 address = s:option(Value, "address", translate("Address (Support Domain Name)"))
 address.rmempty = false
@@ -177,15 +162,12 @@ address:depends("type", "Socks")
 address:depends("type", "SS")
 address:depends("type", "SSR")
 address:depends({ type = "V2ray", protocol = "vmess" })
-address:depends({ type = "V2ray", protocol = "vless" })
 address:depends({ type = "V2ray", protocol = "http" })
 address:depends({ type = "V2ray", protocol = "socks" })
 address:depends({ type = "V2ray", protocol = "shadowsocks" })
 address:depends("type", "Brook")
 address:depends("type", "Trojan")
-address:depends("type", "Trojan-Plus")
 address:depends("type", "Trojan-Go")
-address:depends("type", "Naiveproxy")
 
 --[[
 use_ipv6 = s:option(Flag, "use_ipv6", translate("Use IPv6"))
@@ -194,13 +176,11 @@ use_ipv6:depends("type", "Socks")
 use_ipv6:depends("type", "SS")
 use_ipv6:depends("type", "SSR")
 use_ipv6:depends({ type = "V2ray", protocol = "vmess" })
-use_ipv6:depends({ type = "V2ray", protocol = "vless" })
 use_ipv6:depends({ type = "V2ray", protocol = "http" })
 use_ipv6:depends({ type = "V2ray", protocol = "socks" })
 use_ipv6:depends({ type = "V2ray", protocol = "shadowsocks" })
 use_ipv6:depends("type", "Brook")
 use_ipv6:depends("type", "Trojan")
-use_ipv6:depends("type", "Trojan-Plus")
 use_ipv6:depends("type", "Trojan-Go")
 --]]
 
@@ -211,19 +191,15 @@ port:depends("type", "Socks")
 port:depends("type", "SS")
 port:depends("type", "SSR")
 port:depends({ type = "V2ray", protocol = "vmess" })
-port:depends({ type = "V2ray", protocol = "vless" })
 port:depends({ type = "V2ray", protocol = "http" })
 port:depends({ type = "V2ray", protocol = "socks" })
 port:depends({ type = "V2ray", protocol = "shadowsocks" })
 port:depends("type", "Brook")
 port:depends("type", "Trojan")
-port:depends("type", "Trojan-Plus")
 port:depends("type", "Trojan-Go")
-port:depends("type", "Naiveproxy")
 
 username = s:option(Value, "username", translate("Username"))
 username:depends("type", "Socks")
-username:depends("type", "Naiveproxy")
 username:depends("protocol", "http")
 username:depends("protocol", "socks")
 
@@ -234,9 +210,7 @@ password:depends("type", "SS")
 password:depends("type", "SSR")
 password:depends("type", "Brook")
 password:depends("type", "Trojan")
-password:depends("type", "Trojan-Plus")
 password:depends("type", "Trojan-Go")
-password:depends("type", "Naiveproxy")
 password:depends("protocol", "http")
 password:depends("protocol", "socks")
 password:depends("protocol", "shadowsocks")
@@ -244,60 +218,26 @@ password:depends("protocol", "shadowsocks")
 ss_encrypt_method = s:option(ListValue, "ss_encrypt_method", translate("Encrypt Method"))
 for a, t in ipairs(ss_encrypt_method_list) do ss_encrypt_method:value(t) end
 ss_encrypt_method:depends("type", "SS")
-function ss_encrypt_method.cfgvalue(self, section)
-	return m:get(section, "method")
-end
-function ss_encrypt_method.write(self, section, value)
-	m:set(section, "method", value)
-end
 
 ssr_encrypt_method = s:option(ListValue, "ssr_encrypt_method", translate("Encrypt Method"))
 for a, t in ipairs(ssr_encrypt_method_list) do ssr_encrypt_method:value(t) end
 ssr_encrypt_method:depends("type", "SSR")
-function ssr_encrypt_method.cfgvalue(self, section)
-	return m:get(section, "method")
-end
-function ssr_encrypt_method.write(self, section, value)
-	m:set(section, "method", value)
-end
 
 security = s:option(ListValue, "security", translate("Encrypt Method"))
 for a, t in ipairs(security_list) do security:value(t) end
 security:depends("protocol", "vmess")
 
-encryption = s:option(Value, "encryption", translate("Encrypt Method"))
-encryption.default = "none"
-encryption:depends("protocol", "vless")
-
 v_ss_encrypt_method = s:option(ListValue, "v_ss_encrypt_method", translate("Encrypt Method"))
 for a, t in ipairs(v_ss_encrypt_method_list) do v_ss_encrypt_method:value(t) end
 v_ss_encrypt_method:depends("protocol", "shadowsocks")
-function v_ss_encrypt_method.cfgvalue(self, section)
-	return m:get(section, "method")
-end
-function v_ss_encrypt_method.write(self, section, value)
-	m:set(section, "method", value)
-end
 
 ss_ota = s:option(Flag, "ss_ota", translate("OTA"), translate("When OTA is enabled, V2Ray will reject connections that are not OTA enabled. This option is invalid when using AEAD encryption."))
 ss_ota.default = "0"
 ss_ota:depends("protocol", "shadowsocks")
-function ss_ota.cfgvalue(self, section)
-	return m:get(section, "ota")
-end
-function ss_ota.write(self, section, value)
-	m:set(section, "ota", value)
-end
 
 ssr_protocol = s:option(ListValue, "ssr_protocol", translate("Protocol"))
 for a, t in ipairs(ssr_protocol_list) do ssr_protocol:value(t) end
 ssr_protocol:depends("type", "SSR")
-function ssr_protocol.cfgvalue(self, section)
-	return m:get(section, "protocol")
-end
-function ssr_protocol.write(self, section, value)
-	m:set(section, "protocol", value)
-end
 
 protocol_param = s:option(Value, "protocol_param", translate("Protocol_param"))
 protocol_param:depends("type", "SSR")
@@ -321,30 +261,17 @@ tcp_fast_open:value("true")
 tcp_fast_open:depends("type", "SS")
 tcp_fast_open:depends("type", "SSR")
 tcp_fast_open:depends("type", "Trojan")
-tcp_fast_open:depends("type", "Trojan-Plus")
 tcp_fast_open:depends("type", "Trojan-Go")
 
 ss_plugin = s:option(ListValue, "ss_plugin", translate("plugin"))
 ss_plugin:value("none", translate("none"))
-if api.is_finded("v2ray-plugin") then ss_plugin:value("v2ray-plugin") end
-if api.is_finded("obfs-local") then ss_plugin:value("obfs-local") end
+if is_finded("v2ray-plugin") then ss_plugin:value("v2ray-plugin") end
+if is_finded("obfs-local") then ss_plugin:value("obfs-local") end
 ss_plugin:depends("type", "SS")
-function ss_plugin.cfgvalue(self, section)
-	return m:get(section, "plugin")
-end
-function ss_plugin.write(self, section, value)
-	m:set(section, "plugin", value)
-end
 
 ss_plugin_opts = s:option(Value, "ss_plugin_opts", translate("opts"))
 ss_plugin_opts:depends("ss_plugin", "v2ray-plugin")
 ss_plugin_opts:depends("ss_plugin", "obfs-local")
-function ss_plugin_opts.cfgvalue(self, section)
-	return m:get(section, "plugin_opts")
-end
-function ss_plugin_opts.write(self, section, value)
-	m:set(section, "plugin_opts", value)
-end
 
 use_kcp = s:option(Flag, "use_kcp", translate("Use Kcptun"),
                    "<span style='color:red'>" .. translate("Please confirm whether the Kcptun is installed. If not, please go to Rule Update download installation.") .. "</span>")
@@ -365,33 +292,29 @@ kcp_opts = s:option(TextValue, "kcp_opts", translate("Kcptun Config"), translate
 kcp_opts.placeholder = "--crypt aes192 --key abc123 --mtu 1350 --sndwnd 128 --rcvwnd 1024 --mode fast"
 kcp_opts:depends("use_kcp", "1")
 
-uuid = s:option(Value, "uuid", translate("ID"))
-uuid.password = true
-uuid:depends("protocol", "vmess")
-uuid:depends("protocol", "vless")
+vmess_id = s:option(Value, "vmess_id", translate("ID"))
+vmess_id.password = true
+vmess_id:depends("protocol", "vmess")
 
 alter_id = s:option(Value, "alter_id", translate("Alter ID"))
 alter_id:depends("protocol", "vmess")
 
-level = s:option(Value, "level", translate("User Level"))
-level.default = 1
-level:depends("protocol", "vmess")
-level:depends("protocol", "vless")
+vmess_level = s:option(Value, "vmess_level", translate("User Level"))
+vmess_level.default = 1
+vmess_level:depends("protocol", "vmess")
 
-stream_security = s:option(ListValue, "stream_security", translate("Transport Layer Encryption"), translate('Whether or not transport layer encryption is enabled, the supported options are "none" for unencrypted and "TLS" for using TLS.'))
+stream_security = s:option(ListValue, "stream_security", translate("Transport Layer Encryption"), translate('Whether or not transport layer encryption is enabled, the supported options are "none" for unencrypted (default) and "TLS" for using TLS.'))
 stream_security:value("none", "none")
 stream_security:value("tls", "tls")
 stream_security.default = "tls"
 stream_security:depends("protocol", "vmess")
-stream_security:depends("protocol", "vless")
 stream_security:depends("protocol", "socks")
 stream_security:depends("protocol", "shadowsocks")
 stream_security:depends("type", "Trojan")
-stream_security:depends("type", "Trojan-Plus")
 stream_security:depends("type", "Trojan-Go")
 stream_security.validate = function(self, value)
-    if value == "none" and (type:formvalue(arg[1]) == "Trojan" or type:formvalue(arg[1]) == "Trojan-Plus") then
-        return nil, translate("'none' not supported for original Trojan, please choose 'tls'.")
+    if value == "none" and type:formvalue(arg[1]) == "Trojan" then
+        return nil, translate("'none' not supported for original Trojan.")
     end
     return value
 end
@@ -410,7 +333,7 @@ trojan_force_fp:depends({ type = "Trojan-Go", stream_security = "tls" })
 tls_serverName = s:option(Value, "tls_serverName", translate("Domain"))
 tls_serverName:depends("stream_security", "tls")
 
-tls_allowInsecure = s:option(Flag, "tls_allowInsecure", translate("allowInsecure"), translate("Whether unsafe connections are allowed. When checked, Certificate validation will be skipped."))
+tls_allowInsecure = s:option(Flag, "tls_allowInsecure", translate("allowInsecure"), translate("Whether unsafe connections are allowed. When checked, V2Ray does not check the validity of the TLS certificate provided by the remote host."))
 tls_allowInsecure.default = "0"
 tls_allowInsecure:depends("stream_security", "tls")
 
@@ -424,7 +347,7 @@ trojan_transport:value("original", "Original")
 trojan_transport:value("ws", "WebSocket")
 trojan_transport:value("h2", "HTTP/2")
 trojan_transport:value("h2+ws", "HTTP/2 & WebSocket")
-trojan_transport.default = "original"
+trojan_transport.default = "ws"
 trojan_transport:depends("type", "Trojan-Go")
 
 trojan_plugin = s:option(ListValue, "plugin_type", translate("Plugin Type"))
@@ -457,7 +380,6 @@ transport:value("h2", "HTTP/2")
 transport:value("ds", "DomainSocket")
 transport:value("quic", "QUIC")
 transport:depends("protocol", "vmess")
-transport:depends("protocol", "vless")
 transport:depends("protocol", "socks")
 transport:depends("protocol", "shadowsocks")
 
@@ -582,7 +504,6 @@ ss_aead_pwd:depends("ss_aead", "1")
 -- [[ Mux ]]--
 mux = s:option(Flag, "mux", translate("Mux"))
 mux:depends({ type = "V2ray", protocol = "vmess" })
-mux:depends({ type = "V2ray", protocol = "vless" })
 mux:depends({ type = "V2ray", protocol = "http" })
 mux:depends({ type = "V2ray", protocol = "socks" })
 mux:depends({ type = "V2ray", protocol = "shadowsocks" })

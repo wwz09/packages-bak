@@ -1,4 +1,4 @@
-# Copyright (C) 2018-2020 L-WRT Team
+# Copyright (C) 2018-2020 Lienol <lawlienol@gmail.com>
 #
 # This is free software, licensed under the GNU General Public License v3.
 #
@@ -7,8 +7,8 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-passwall
 PKG_VERSION:=3.9
-PKG_RELEASE:=56
-PKG_DATE:=20200907
+PKG_RELEASE:=29
+PKG_DATE:=20200802
 
 PKG_BUILD_DIR := $(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 
@@ -16,14 +16,14 @@ include $(INCLUDE_DIR)/package.mk
 
 define Package/$(PKG_NAME)/config
 menu "Configuration"
+
+config PACKAGE_$(PKG_NAME)_INCLUDE_ipt2socks
+	bool "Include ipt2socks"
+	default y
 	
 config PACKAGE_$(PKG_NAME)_INCLUDE_Shadowsocks
 	bool "Include Shadowsocks"
-	default y
-	
-config PACKAGE_$(PKG_NAME)_INCLUDE_Shadowsocks_Server
-	bool "Include Shadowsocks Server"
-	default y
+	default n
 	
 config PACKAGE_$(PKG_NAME)_INCLUDE_ShadowsocksR
 	bool "Include ShadowsocksR"
@@ -35,7 +35,7 @@ config PACKAGE_$(PKG_NAME)_INCLUDE_ShadowsocksR_Server
 	
 config PACKAGE_$(PKG_NAME)_INCLUDE_V2ray
 	bool "Include V2ray"
-	default y if i386||x86_64||arm||aarch64
+	default y
 
 config PACKAGE_$(PKG_NAME)_INCLUDE_Trojan_Plus
 	bool "Include Trojan_Plus"
@@ -43,15 +43,15 @@ config PACKAGE_$(PKG_NAME)_INCLUDE_Trojan_Plus
 	
 config PACKAGE_$(PKG_NAME)_INCLUDE_Trojan_GO
 	bool "Include Trojan_GO"
-	default y if i386||x86_64||arm||aarch64
+	default n
 	
 config PACKAGE_$(PKG_NAME)_INCLUDE_Brook
 	bool "Include Brook"
-	default y
+	default n
 	
 config PACKAGE_$(PKG_NAME)_INCLUDE_kcptun
 	bool "Include kcptun"
-	default y
+	default n
 
 config PACKAGE_$(PKG_NAME)_INCLUDE_haproxy
 	bool "Include haproxy"
@@ -61,17 +61,21 @@ config PACKAGE_$(PKG_NAME)_INCLUDE_ChinaDNS_NG
 	bool "Include ChinaDNS-NG"
 	default y
 	
+config PACKAGE_$(PKG_NAME)_INCLUDE_pdnsd
+	bool "Include pdnsd"
+	default y
+	
 config PACKAGE_$(PKG_NAME)_INCLUDE_dns2socks
 	bool "Include dns2socks"
 	default y
 	
 config PACKAGE_$(PKG_NAME)_INCLUDE_v2ray-plugin
 	bool "Include v2ray-plugin (Shadowsocks plugin)"
-	default y if i386||x86_64||arm||aarch64
+	default n
 
 config PACKAGE_$(PKG_NAME)_INCLUDE_simple-obfs
 	bool "Include simple-obfs (Shadowsocks plugin)"
-	default y if i386||x86_64||arm||aarch64
+	default n
 
 endmenu
 endef
@@ -83,11 +87,9 @@ define Package/$(PKG_NAME)
   PKGARCH:=all
   DEPENDS:=+libmbedtls +iptables-mod-tproxy +ip +ipset +coreutils +coreutils-base64 +coreutils-nohup +luci-lib-jsonc \
   +curl +ca-certificates +resolveip +unzip +dnsmasq-full +tcping +libuci-lua \
-  +ipt2socks \
-  +pdnsd-alt \
+  +PACKAGE_$(PKG_NAME)_INCLUDE_ipt2socks:ipt2socks \
   +PACKAGE_$(PKG_NAME)_INCLUDE_Shadowsocks:shadowsocks-libev-ss-redir \
   +PACKAGE_$(PKG_NAME)_INCLUDE_Shadowsocks:shadowsocks-libev-ss-local \
-  +PACKAGE_$(PKG_NAME)_INCLUDE_Shadowsocks_Server:shadowsocks-libev-ss-server \
   +PACKAGE_$(PKG_NAME)_INCLUDE_ShadowsocksR:shadowsocksr-libev-alt \
   +PACKAGE_$(PKG_NAME)_INCLUDE_ShadowsocksR:shadowsocksr-libev-ssr-local \
   +PACKAGE_$(PKG_NAME)_INCLUDE_ShadowsocksR_Server:shadowsocksr-libev-server \
@@ -98,6 +100,7 @@ define Package/$(PKG_NAME)
   +PACKAGE_$(PKG_NAME)_INCLUDE_kcptun:kcptun-client \
   +PACKAGE_$(PKG_NAME)_INCLUDE_haproxy:haproxy \
   +PACKAGE_$(PKG_NAME)_INCLUDE_ChinaDNS_NG:chinadns-ng \
+  +PACKAGE_$(PKG_NAME)_INCLUDE_pdnsd:pdnsd-alt \
   +PACKAGE_$(PKG_NAME)_INCLUDE_dns2socks:dns2socks \
   +PACKAGE_$(PKG_NAME)_INCLUDE_v2ray-plugin:v2ray-plugin \
   +PACKAGE_$(PKG_NAME)_INCLUDE_simple-obfs:simple-obfs

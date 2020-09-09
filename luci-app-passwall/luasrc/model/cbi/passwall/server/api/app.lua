@@ -68,40 +68,25 @@ local function start()
             local config_file = CONFIG_PATH .. "/" .. id .. ".json"
             local udp_forward = 1
             local type = user.type or ""
-            if type == "Socks" then
-                local port = user.port
-                local username = user.username
-                local password = user.password
-                if username and password then
-                    local auth_file = CONFIG_PATH .. "/" .. id .. ".auth"
-                    cmd(string.format('echo %s:%s > %s', username, password, auth_file))
-                    bin = ln_start("/usr/bin/ssocksd", "ssocksd_" .. id, "-p " .. port .. " -a " .. auth_file)
-                else
-                    bin = ln_start("/usr/bin/ssocksd", "ssocksd_" .. id, "-p " .. port)
-                end
-            elseif type == "SS" or type == "SSR" then
-                config = require("luci.model.cbi.passwall.server.api.shadowsocks").gen_config(user)
+            if type == "SSR" then
+                config = require("luci.model.cbi.passwall.server.api.ssr").gen_config(user)
                 local udp_param = ""
                 udp_forward = tonumber(user.udp_forward) or 1
                 if udp_forward == 1 then
                     udp_param = "-u"
                 end
-                type = type:lower()
-                bin = ln_start("/usr/bin/" .. type .. "-server", type .. "-server", "-c " .. config_file .. " " .. udp_param)
+                bin = ln_start("/usr/bin/ssr-server", "ssr-server", "-c " .. config_file .. " " .. udp_param)
             elseif type == "V2ray" then
                 config = require("luci.model.cbi.passwall.server.api.v2ray").gen_config(user)
                 bin = ln_start(_api.get_v2ray_path(), "v2ray", "-config=" .. config_file)
             elseif type == "Trojan" then
-                config = require("luci.model.cbi.passwall.server.api.trojan").gen_config(user)
-                bin = ln_start("/usr/sbin/trojan", "trojan", "-c " .. config_file)
-            elseif type == "Trojan-Plus" then
                 config = require("luci.model.cbi.passwall.server.api.trojan").gen_config(user)
                 bin = ln_start("/usr/sbin/trojan-plus", "trojan-plus", "-c " .. config_file)
             elseif type == "Trojan-Go" then
                 config = require("luci.model.cbi.passwall.server.api.trojan").gen_config(user)
                 bin = ln_start(_api.get_trojan_go_path(), "trojan-go", "-config " .. config_file)
             elseif type == "Brook" then
-                local brook_protocol = user.protocol
+                local brook_protocol = user.brook_protocol
                 local brook_password = user.password
                 bin = ln_start(_api.get_brook_path(), "brook_" .. id, string.format("%s -l :%s -p %s", brook_protocol, port, brook_password))
             end

@@ -41,20 +41,15 @@ local function gen_outbound(node, tag)
             end
             node.stream_security = "none"
         end
-
-        if node.transport == "mkcp" or node.transport == "ds" or node.transport == "quic" then
-            node.stream_security = "none"
-        end
-
         result = {
             tag = tag,
-            protocol = node.protocol,
+            protocol = node.protocol or "vmess",
             mux = {
                 enabled = (node.mux == "1") and true or false,
                 concurrency = (node.mux_concurrency) and tonumber(node.mux_concurrency) or 8
             },
             -- 底层传输配置
-            streamSettings = (node.protocol == "vmess" or node.protocol == "vless" or node.protocol == "socks" or node.protocol == "shadowsocks") and {
+            streamSettings = (node.protocol == "vmess" or node.protocol == "socks" or node.protocol == "shadowsocks") and {
                 network = node.transport,
                 security = node.stream_security,
                 tlsSettings = (node.stream_security == "tls") and {
@@ -101,17 +96,16 @@ local function gen_outbound(node, tag)
                 } or nil
             } or nil,
             settings = {
-                vnext = (node.protocol == "vmess" or node.protocol == "vless") and {
+                vnext = (node.protocol == "vmess") and {
                     {
                         address = node.address,
                         port = tonumber(node.port),
                         users = {
                             {
-                                id = node.uuid,
+                                id = node.vmess_id,
                                 alterId = tonumber(node.alter_id),
-                                level = node.level and tonumber(node.level) or 0,
-                                security = node.security,
-                                encryption = node.encryption or "none"
+                                level = tonumber(node.vmess_level),
+                                security = node.security
                             }
                         }
                     }
@@ -120,15 +114,20 @@ local function gen_outbound(node, tag)
                     {
                         address = node.address,
                         port = tonumber(node.port),
-                        method = node.method or nil,
+                        method = node.v_ss_encrypt_method or nil,
                         password = node.password or "",
-                        ota = node.ota == '1' and true or false,
+                        ota = node.ss_ota == '1' and true or false,
                         users = (node.username and node.password) and
                             {{user = node.username, pass = node.password}} or nil
                     }
                 } or nil
             }
         }
+    end
+
+    if node.transport == "mkcp" or node.transport == "ds" or node.transport == "quic" then
+        result.streamSettings.security = "none"
+        result.streamSettings.tlsSettings = nil
     end
 
     return result
