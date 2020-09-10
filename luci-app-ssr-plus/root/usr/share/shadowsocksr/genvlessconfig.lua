@@ -5,7 +5,7 @@ local proto = arg[2]
 local local_port = arg[3] or "0"
 local socks_port = arg[4] or "0"
 local server = ucursor:get_all("shadowsocksr", server_section)
-local v2ray = {
+local vless = {
 log = {
 -- error = "/var/ssrplus.log",
 loglevel = "warning"
@@ -36,7 +36,7 @@ inboundDetour = (proto == "tcp" and socks_port ~= "0") and {
 } or nil,
 -- 传出连接
 outbound = {
-	protocol = "vmess",
+	protocol = "vless",
 	settings = {
 		vnext = {
 			{
@@ -45,8 +45,7 @@ outbound = {
 				users = {
 					{
 						id = server.vmess_id,
-						alterId = tonumber(server.alter_id),
-						security = server.security
+						encryption = server.vless_encryption
 					}
 				}
 			}
@@ -112,4 +111,4 @@ outboundDetour = {
 		}
 	}
 }
-print(json.stringify(v2ray, 1))
+print(json.stringify(vless, 1))
