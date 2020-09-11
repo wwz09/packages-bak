@@ -62,7 +62,7 @@ config PACKAGE_$(PKG_NAME)_INCLUDE_ChinaDNS_NG
 	default n
 	
 config PACKAGE_$(PKG_NAME)_INCLUDE_https_dns_proxy
-	bool "Include Https_DNS_Proxy(DoH)"
+	bool "Include Https DNS Proxy(DoH)"
 	default y
 	
 config PACKAGE_$(PKG_NAME)_INCLUDE_dns2socks
