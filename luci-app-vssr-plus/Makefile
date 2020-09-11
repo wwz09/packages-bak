@@ -22,10 +22,6 @@ PKG_CONFIG_DEPENDS:= CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_Shadowsocks \
         CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_udpspeeder \
         CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_udp2raw-tunnel \
 	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_privoxy \
-	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_simple-obfs\
-	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_simple-obfs-server\
-	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_GoQuiet-client\
-	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_GoQuiet-server\
 	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_v2ray-plugin
 
 include $(INCLUDE_DIR)/package.mk
@@ -94,14 +90,6 @@ config PACKAGE_$(PKG_NAME)_INCLUDE_haproxy
 config PACKAGE_$(PKG_NAME)_INCLUDE_privoxy
 	bool "Include privoxy http local"
 	default y
-
-config PACKAGE_$(PKG_NAME)_INCLUDE_simple-obfs
-	bool "Include simple-obfsl"
-	default y
-	
-config PACKAGE_$(PKG_NAME)_INCLUDE_simple-obfs-server
-	bool "Include simple-obfs-server"
-	default y
 	
 config PACKAGE_$(PKG_NAME)_INCLUDE_udpspeeder
 	bool "Include udpspeeder"
@@ -110,14 +98,6 @@ config PACKAGE_$(PKG_NAME)_INCLUDE_udpspeeder
 config PACKAGE_$(PKG_NAME)_INCLUDE_udp2raw-tunnel
 	bool "Include udp2raw-tunnel"
 	default y
-	
-config PACKAGE_$(PKG_NAME)_INCLUDE_GoQuiet-client
-	bool "Include GoQuiet-client"
-	default n
-	
-config PACKAGE_$(PKG_NAME)_INCLUDE_GoQuiet-server
-	bool "Include GoQuiet-server"
-	default n
 
 config PACKAGE_$(PKG_NAME)_INCLUDE_v2ray-plugin
 	bool "Include v2ray-plugin"
@@ -149,10 +129,6 @@ define Package/luci-app-vssr-plus
             +PACKAGE_$(PKG_NAME)_INCLUDE_privoxy:privoxy \
             +PACKAGE_$(PKG_NAME)_INCLUDE_udpspeeder:udpspeeder \
             +PACKAGE_$(PKG_NAME)_INCLUDE_udp2raw-tunnel:udp2raw-tunnel \
-            +PACKAGE_$(PKG_NAME)_INCLUDE_simple-obfs:simple-obfs \
-            +PACKAGE_$(PKG_NAME)_INCLUDE_simple-obfs-server:simple-obfs-server \
-            +PACKAGE_$(PKG_NAME)_INCLUDE_GoQuiet-client:gq-client \
-            +PACKAGE_$(PKG_NAME)_INCLUDE_GoQuiet-server:gq-server \
             +PACKAGE_$(PKG_NAME)_INCLUDE_v2ray-plugin:v2ray-plugin
 endef
 
