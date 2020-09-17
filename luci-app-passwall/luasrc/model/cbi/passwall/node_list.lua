@@ -8,20 +8,30 @@ m = Map(appname)
 s = m:section(TypedSection, "global_other")
 s.anonymous = true
 
-o = s:option(MultiValue, "nodes_ping", "Ping")
-o:value("auto_ping", translate("Auto Ping"), translate("This will automatically ping the node for latency"))
-o:value("tcping", translate("Tcping"), translate("This will use tcping replace ping detection of node"))
+---- Auto Ping
+o = s:option(Flag, "auto_ping", translate("Auto Ping"),
+             translate("This will automatically ping the node for latency"))
+o.default = 1
 
-o = s:option(MultiValue, "nodes_display", translate("Operation"))
-o:value("compact_display_nodes", translate("Concise display nodes"))
-o:value("show_add_mode", translate("Show Add Mode"))
-o:value("show_group", translate("Show Group"))
+---- Use TCP Detection delay
+o = s:option(Flag, "use_tcping", translate("Use TCP Detection delay"),
+             translate("This will use tcping replace ping detection of node"))
+o.default = 1
+
+---- Concise display nodes
+o = s:option(Flag, "compact_display_nodes", translate("Concise display nodes"))
+o.default = 0
+
+---- Show Add Mode
+o = s:option(Flag, "show_add_mode", translate("Show Add Mode"))
+o.default = 1
+
+---- Show group
+o = s:option(Flag, "show_group", translate("Show Group"))
+o.default = 1
 
 -- [[ Add the node via the link ]]--
 s:append(Template(appname .. "/node_list/link_add_node"))
-
-local nodes_ping = m:get("@global_other[0]", "nodes_ping") or ""
-local nodes_display = m:get("@global_other[0]", "nodes_display") or ""
 
 -- [[ Node List ]]--
 s = m:section(TypedSection, "nodes")
@@ -42,7 +52,7 @@ function s.remove(e, t)
     luci.http.redirect(d.build_url("admin", "services", appname, "node_list"))
 end
 
-if nodes_display:find("show_group") then
+if m:get("@global_other[0]", "show_group") == "1" then
     show_group = s:option(DummyValue, "group", translate("Group"))
     show_group.cfgvalue = function(t, n)
         local group = m:get(n, "group") or "无"
@@ -52,17 +62,15 @@ end
 
 s.sortable = true
 -- 简洁模式
-if nodes_display:find("compact_display_nodes") then
+if m:get("@global_other[0]", "compact_display_nodes") == "1" then
     if show_group then show_group.width = "25%" end
     o = s:option(DummyValue, "remarks", translate("Remarks"))
-    o.rawhtml = true
     o.cfgvalue = function(t, n)
         local str = ""
         local is_sub = m:get(n, "is_sub") or ""
         local group = m:get(n, "group") or ""
         local remarks = m:get(n, "remarks") or ""
         local type = m:get(n, "type") or ""
-        str = str .. string.format("<input type='hidden' id='cbid.%s.%s.type' value='%s'>", appname, n, type)
         if type == "V2ray" then
             local protocol = m:get(n, "protocol")
             if protocol == "_balancing" then
@@ -75,15 +83,14 @@ if nodes_display:find("compact_display_nodes") then
         local port = m:get(n, "port") or ""
         str = str .. translate(type) .. "：" .. remarks
         if address ~= "" and port ~= "" then
-            str = str .. string.format("（%s:%s）", address, port)
-            str = str .. string.format("<input type='hidden' id='cbid.%s.%s.address' value='%s'>", appname, n, address)
-            str = str .. string.format("<input type='hidden' id='cbid.%s.%s.port' value='%s'>", appname, n, port)
+            local s = " （" .. address .. ":" .. port .. "）"
+            str = str .. s
         end
         return str
     end
 else
     ---- Add Mode
-    if nodes_display:find("show_add_mode") then
+    if m:get("@global_other[0]", "show_add_mode") == "1" then
         o = s:option(DummyValue, "add_mode", translate("Add Mode"))
         o.cfgvalue = function(t, n)
             local v = Value.cfgvalue(t, n)
@@ -92,6 +99,7 @@ else
             else
                 return '手动'
             end
+            return str
         end
     end
 
@@ -132,12 +140,22 @@ end
 
 ---- Ping
 o = s:option(DummyValue, "ping", translate("Latency"))
-o.width = "8%"
-if not nodes_ping:find("auto_ping") then
+if m:get("@global_other[0]", "auto_ping") == "0" then
     o.template = appname .. "/node_list/ping"
 else
     o.template = appname .. "/node_list/auto_ping"
 end
+--[[
+o.cfgvalue = function(t, n)
+    local type = m:get(n, "type") or ""
+    if type == "V2ray" then
+        local protocol = m:get(n, "protocol","")
+        if protocol == "_balancing" or protocol == "_shunt" then
+            return "---"
+        end
+    end
+end
+--]]
 
 m:append(Template(appname .. "/node_list/node_list"))
 

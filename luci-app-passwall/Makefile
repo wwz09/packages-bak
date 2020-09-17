@@ -7,8 +7,8 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-passwall
 PKG_VERSION:=3.9
-PKG_RELEASE:=56
-PKG_DATE:=20200907
+PKG_RELEASE:=58
+PKG_DATE:=20200914
 
 PKG_BUILD_DIR := $(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 
@@ -61,7 +61,7 @@ config PACKAGE_$(PKG_NAME)_INCLUDE_ChinaDNS_NG
 	bool "Include ChinaDNS-NG"
 	default n
 	
-config PACKAGE_$(PKG_NAME)_INCLUDE_https-dns-proxy
+config PACKAGE_$(PKG_NAME)_INCLUDE_https_dns_proxy
 	bool "Include Https DNS Proxy(DoH)"
 	default y
 	
