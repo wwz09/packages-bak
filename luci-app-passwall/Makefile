@@ -7,8 +7,8 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-passwall
 PKG_VERSION:=3.9
-PKG_RELEASE:=61
-PKG_DATE:=20200919
+PKG_RELEASE:=64
+PKG_DATE:=20200925
 
 PKG_BUILD_DIR := $(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 
@@ -64,7 +64,11 @@ config PACKAGE_$(PKG_NAME)_INCLUDE_haproxy
 config PACKAGE_$(PKG_NAME)_INCLUDE_ChinaDNS_NG
 	bool "Include ChinaDNS-NG"
 	default n
-		
+	
+config PACKAGE_$(PKG_NAME)_INCLUDE_https_dns_proxy
+	bool "Include Https DNS Proxy(DoH)"
+	default y
+	
 config PACKAGE_$(PKG_NAME)_INCLUDE_dns2socks
 	bool "Include dns2socks"
 	default n
@@ -89,7 +93,7 @@ define Package/$(PKG_NAME)
   +curl +ca-certificates +resolveip +unzip +dnsmasq-full +tcping +libuci-lua \
   +ipt2socks \
   +ssocks \
-  +ssocksd \
+  +microsocks \
   +pdnsd-alt \
   +PACKAGE_$(PKG_NAME)_INCLUDE_Shadowsocks:shadowsocks-libev-ss-redir \
   +PACKAGE_$(PKG_NAME)_INCLUDE_Shadowsocks:shadowsocks-libev-ss-local \
@@ -105,6 +109,7 @@ define Package/$(PKG_NAME)
   +PACKAGE_$(PKG_NAME)_INCLUDE_kcptun:kcptun-client \
   +PACKAGE_$(PKG_NAME)_INCLUDE_haproxy:haproxy \
   +PACKAGE_$(PKG_NAME)_INCLUDE_ChinaDNS_NG:chinadns-ng \
+  +PACKAGE_$(PKG_NAME)_INCLUDE_https_dns_proxy:https-dns-proxy \
   +PACKAGE_$(PKG_NAME)_INCLUDE_dns2socks:dns2socks \
   +PACKAGE_$(PKG_NAME)_INCLUDE_v2ray-plugin:v2ray-plugin \
   +PACKAGE_$(PKG_NAME)_INCLUDE_simple-obfs:simple-obfs
