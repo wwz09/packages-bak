@@ -1,4 +1,7 @@
+<!-- markdownlint-disable MD013 -->
 # DNS Over HTTPS Proxy (https-dns-proxy)
+
+[![HitCount](http://hits.dwyl.com/stangri/openwrt/https-dns-proxy.svg)](http://hits.dwyl.com/stangri/openwrt/https-dns-proxy)
 
 A lean RFC8484-compatible (no JSON API support) DNS-over-HTTPS (DoH) proxy service which supports DoH servers ran by AdGuard, CleanBrowsing, Cloudflare, Google, ODVR (nic.cz) and Quad9. Based on [@aarond10](https://github.com/aarond10)'s [https-dns-proxy](https://github.com/aarond10/https_dns_proxy).
 
@@ -11,7 +14,7 @@ A lean RFC8484-compatible (no JSON API support) DNS-over-HTTPS (DoH) proxy servi
 
 ## Screenshots (luci-app-https-dns-proxy)
 
-![screenshot](https://cdn.jsdelivr.net/gh/stangri/openwrt_packages@master/screenshots/https-dns-proxy/screenshot01.png "https-dns-proxy screenshot")
+![screenshot](https://cdn.jsdelivr.net/gh/stangri/openwrt_packages/screenshots/https-dns-proxy/screenshot01.png "https-dns-proxy screenshot")
 
 ## Requirements
 
