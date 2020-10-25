@@ -103,6 +103,12 @@ config_su_check()
 {
    echo "配置文件下载成功，检查是否有更新..." >$START_LOG
    sed -i 's/!<str> //g' "$CFG_FILE" >/dev/null 2>&1
+   #关键字还原
+   if [ -z "$(grep "^Proxy:#d" "$CFG_FILE")" ]; then
+      sed -i "s/^Proxy:/proxies:/g" "$CFG_FILE" 2>/dev/null
+   else
+      sed -i "s/^Proxy:#d/proxies:/g" "$CFG_FILE" 2>/dev/null
+   fi
    if [ -f "$CONFIG_FILE" ]; then
       cmp -s "$BACKPACK_FILE" "$CFG_FILE"
       if [ "$?" -ne 0 ]; then
@@ -153,6 +159,8 @@ change_dns()
          uci commit dhcp
          /etc/init.d/dnsmasq restart >/dev/null 2>&1
       fi
+      iptables -t nat -I OUTPUT -j openclash_output >/dev/null 2>&1
+      iptables -t mangle -I OUTPUT -j openclash_output >/dev/null 2>&1
       nohup /usr/share/openclash/openclash_watchdog.sh &
    fi
 }
@@ -170,6 +178,9 @@ config_download_direct()
       uci delete dhcp.@dnsmasq[0].cachesize >/dev/null 2>&1
       uci commit dhcp
       /etc/init.d/dnsmasq restart >/dev/null 2>&1
+      
+      iptables -t nat -D OUTPUT -j openclash_output >/dev/null 2>&1
+      iptables -t mangle -D OUTPUT -j openclash_output >/dev/null 2>&1
       sleep 3
 
       config_download

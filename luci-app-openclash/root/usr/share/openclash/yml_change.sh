@@ -1,5 +1,8 @@
 #!/bin/sh
 
+LOG_FILE="/tmp/openclash.log"
+START_LOG="/tmp/openclash_start.log"
+
     #删除旧hosts配置
     hostlen=$(sed -n '/hosts:/=' "$7" 2>/dev/null)
     dnslen=$(sed -n '/dns:/=' "$7" 2>/dev/null)
@@ -77,12 +80,18 @@
        fi
     fi
     
-    if [ "$14" -ne 1 ]; then
+    if [ "$14" != "1" ]; then
        controller_address="0.0.0.0"
        bind_address="*"
-    else
+    elif [ "$18" != "Tun" ] && [ "$14" = "1" ]; then
        controller_address=$11
        bind_address=$11
+    elif [ "$18" = "Tun" ] && [ "$14" = "1" ]; then
+       echo "Warning: Stop Set The Bind Address Option In TUN Mode, Because The Router Will Not Be Able To Connect To The Internet" >> $LOG_FILE
+       echo "警告: 在TUN内核下启用仅允许内网会导致路由器无法联网，已忽略此项修改！" >$START_LOG
+       controller_address="0.0.0.0"
+       bind_address="*"
+       sleep 3
     fi
     
     if [ -z "$(grep "^external-controller: $controller_address:$5" "$7")" ]; then
@@ -136,6 +145,20 @@
     sed -i '/bind-address:/d' "$7" 2>/dev/null
     sed -i "/^allow-lan:/a\bind-address: \"${bind_address}\"" "$7"
     
+    if [ -n "$(grep "^ \{0,\}listen:" "$7")" ]; then
+       if [ "$8" != "1" ]; then
+          sed -i "/^ \{0,\}listen:/c\  listen: 127.0.0.1:${17}" "$7" 2>/dev/null
+       else
+          sed -i "/^ \{0,\}listen:/c\  listen: 0.0.0.0:${17}" "$7" 2>/dev/null
+       fi
+    else
+       if [ "$8" != "1" ]; then
+          sed -i "/^dns:/a\  listen: 127.0.0.1:${17}" "$7" 2>/dev/null
+       else
+          sed -i "/^dns:/a\  listen: 0.0.0.0:${17}" "$7" 2>/dev/null
+       fi
+    fi 2>/dev/null
+    
     if [ -z "$(grep '^external-ui: "/usr/share/openclash/dashboard"' "$7")" ]; then
        if [ ! -z "$(grep "^ \{0,\}external-ui:" "$7")" ]; then
           sed -i '/^ \{0,\}external-ui:/c\external-ui: "/usr/share/openclash/dashboard"' "$7"
@@ -165,9 +188,9 @@
        fi
        sed -i "/^dns:/i\  dns-hijack:" "$7"
 #       sed -i "/^dns:/i\  - 8.8.8.8:53" "$7"
-       sed -i "/^dns:/i\  - tcp://8.8.8.8:53" "$7"
+       sed -i "/^dns:/i\    - tcp://8.8.8.8:53" "$7"
 #       sed -i "/^dns:/i\  - 8.8.4.4:53" "$7"
-       sed -i "/^dns:/i\  - tcp://8.8.4.4:53" "$7"
+       sed -i "/^dns:/i\    - tcp://8.8.4.4:53" "$7"
     elif [ "$15" -eq 2 ]; then
        sed -i "/^dns:/i\tun:" "$7"
        sed -i "/^dns:/i\  enable: true" "$7"
@@ -198,9 +221,9 @@
 	     sed -i "/^hosts:/,/^dns:/ {s/^ \{0,\}'/  '/}" "$7" 2>/dev/null #修改参数空格
 	  fi
 	  
-	  sed -i "s/^ \{0,\}- /  - /" "$7" 2>/dev/null
 	  if [ ! -z "$(grep "^ \{0,\}default-nameserver:" "$7")" ]; then
        sed -i "/^ \{0,\}default-nameserver:/c\  default-nameserver:" "$7"
+       sed -i "/^ \{0,\}default-nameserver:/,/,$/ {s/^ \{0,\}- /  - /g}" "$7" 2>/dev/null #修改参数空格
     fi
     
 #fake-ip-filter
@@ -217,6 +240,7 @@
       	if [ ! -z "$(grep "^ \{0,\}fake-ip-filter:" "$7")" ]; then
       	   sed -i "/^ \{0,\}fake-ip-filter:/c\  fake-ip-filter:" "$7"
       	   sed -i '/^ \{0,\}fake-ip-filter:/r/etc/openclash/fake_filter.list' "$7" 2>/dev/null
+      	   sed -i "/^ \{0,\}fake-ip-filter:/,/,$/ {s/^ \{0,\}- /    - /g}" "$7" 2>/dev/null #修改参数空格
       	else
       	   echo "  fake-ip-filter:" >> "$7"
       	   sed -i '/^ \{0,\}fake-ip-filter:/r/etc/openclash/fake_filter.list' "$7" 2>/dev/null

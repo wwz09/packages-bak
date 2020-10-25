@@ -13,11 +13,11 @@ if [ -s "$CUSTOM_FILE" ]; then
    cat "$CUSTOM_FILE" |while read -r line || [[ -n ${line} ]];
    do
       if [ -z "$(echo $line |grep '^ \{0,\}#' 2>/dev/null)" ]; then
-         echo "  - '$line'" >> "$FAKE_FILTER_FILE"
+         echo "    - '$line'" >> "$FAKE_FILTER_FILE"
       else
          continue
 	    fi
-   done
+   done 2>/dev/null
    if [ -s "$FAKE_FILTER_FILE" ]; then
       sed -i '1i\##Custom fake-ip-filter##' "$FAKE_FILTER_FILE"
       echo "##Custom fake-ip-filter END##" >> "$FAKE_FILTER_FILE"
@@ -31,7 +31,7 @@ cfg_server_address()
 	 local section="$1"
    config_get "server" "$section" "server" ""
    
-   IFIP=$(echo $server |grep -E "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$")
+   IFIP=$(echo $server |grep -E "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$" 2>/dev/null)
    if [ -z "$IFIP" ] && [ ! -z "$server" ] && [ -z "$(grep "/$server/" "$SER_FAKE_FILTER_FILE" 2>/dev/null)" ]; then
       echo "server=/$server/$custom_domain_dns_server" >> "$SER_FAKE_FILTER_FILE"
    else
