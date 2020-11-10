@@ -64,6 +64,9 @@ msgstr "加密方式"
 msgid "VLESS Encryption"
 msgstr "VLESS 加密"
 
+msgid "Flow"
+msgstr "流控 (Flow)"
+
 msgid "Transport"
 msgstr "传输协议"
 
@@ -681,3 +684,6 @@ msgstr "警告！请不要重复使用端口！"
 
 msgid "Deny Domain List"
 msgstr "禁止连接的域名"
+
+msgid "Obfuscate password (optional)"
+msgstr "混淆密码（可选）"

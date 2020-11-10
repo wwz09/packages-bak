@@ -5,6 +5,16 @@ local proto = arg[2]
 local local_port = arg[3] or "0"
 local socks_port = arg[4] or "0"
 local server = ucursor:get_all("shadowsocksr", server_section)
+local outbound_security = "none"
+
+if (server.xtls == '1')
+then
+	outbound_security = "xtls"
+elseif (server.tls == '1')
+then
+	outbound_security = "tls"
+end
+
 local vless = {
 log = {
 -- error = "/var/ssrplus.log",
@@ -45,6 +55,7 @@ outbound = {
 				users = {
 					{
 						id = server.vmess_id,
+						flow = (server.xtls == '1') and (server.vless_flow and server.vless_flow or "xtls-rprx-origin") or nil,
 						encryption = server.vless_encryption
 					}
 				}
@@ -54,8 +65,9 @@ outbound = {
 	-- 底层传输配置
 	streamSettings = {
 		network = server.transport,
-		security = (server.tls == '1') and "tls" or "none",
-		tlsSettings = {allowInsecure = (server.insecure ~= "0") and true or false,serverName=server.tls_host,},
+		security = outbound_security,
+		tlsSettings = (outbound_security == "tls") and {allowInsecure = (server.insecure ~= "0") and true or false,serverName=server.tls_host,} or nil,
+		xtlsSettings = (outbound_security == "xtls") and {allowInsecure = (server.insecure ~= "0") and true or false,serverName=server.tls_host,} or nil,
 		tcpSettings = (server.transport == "tcp") and {
 			header = {
 				type = server.tcp_guise,
@@ -77,7 +89,8 @@ outbound = {
 			writeBufferSize = tonumber(server.write_buffer_size),
 			header = {
 				type = server.kcp_guise
-			}
+			},
+			seed = server.seed or nil
 		} or nil,
 		wsSettings = (server.transport == "ws") and (server.ws_path ~= nil or server.ws_host ~= nil) and {
 			path = server.ws_path,
