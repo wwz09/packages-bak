@@ -2,7 +2,7 @@ msgid ""
 msgstr "Content-Type: text/plain; charset=UTF-8\n"
 
 msgid "vssr"
-msgstr "Hello World"
+msgstr "全球网络"
 
 msgid "Client"
 msgstr "客户端"
