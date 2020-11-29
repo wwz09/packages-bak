@@ -3,7 +3,7 @@
 "Language: zh_CN\n"
 
 msgid "OpenClash"
-msgstr "OpenClash"
+msgstr "小猫咪"
 
 msgid "A Clash Client For OpenWrt"
 msgstr "一个运行在OpenWrt上的Clash客户端，兼容Shadowsocks、ShadowsocksR、Vmess、Trojan、Snell等协议，根据灵活的规则配置实现策略代理"
