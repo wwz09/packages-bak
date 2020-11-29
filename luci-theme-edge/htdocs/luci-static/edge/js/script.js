@@ -362,13 +362,13 @@ $(".waves-input-wrapper").filter(function () {
     }
 }).hide();
 
-$("div>select:first-child,div>input[type='text']:first-child,div>input[type='email']:first-child,div>input[type='url']:first-child,div>input[type='date']:first-child,div>input[type='datetime']:first-child,div>input[type='tel']:first-child,div>input[type='number']:first-child,div>input[type='search']:first-child").filter(function () {
-return (!$(this).parents(".cbi-dynlist").length&&!$("body.Diagnostics").length)
+$("div>select:first-child,div>input[type='text']:first-child").filter(function () {
+return (!$(this).parents(".cbi-dynlist").length&&!$("body.Diagnostics").length&&!$(this).hasClass("cbi-input-password"))
 }).after("<span class='focus-input'></span>");
 	
 $("input[type='checkbox']").filter(function () {
   return (!$(this).next("label").length)
-}).css({"position":"relative","opacity":"1","pointer-events":"auto"});
+}).show();
 
 $("select,input").filter(function () {
   return ($(this).next(".focus-input").length)
@@ -377,6 +377,6 @@ $("select,input").filter(function () {
 }).blur(function(){
   $(this).css("border-bottom","1px solid #9e9e9e");
 });
-	}, 400);
+	}, 0);
 	$(".cbi-value").has("textarea").css("background","none");
 })(jQuery);
