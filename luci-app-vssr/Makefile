@@ -1,8 +1,8 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-vssr
-PKG_VERSION:=1.17-1
-PKG_RELEASE:=20200830
+PKG_VERSION:=1.20
+PKG_RELEASE:=20201209
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -14,6 +14,10 @@ config PACKAGE_$(PKG_NAME)_INCLUDE_V2ray_plugin
 config PACKAGE_$(PKG_NAME)_INCLUDE_V2ray
 	bool "Include V2ray"
 	default y if i386||x86_64||arm||aarch64
+
+config PACKAGE_$(PKG_NAME)_INCLUDE_Xray
+	bool "Include Xray"
+	default n
 
 config PACKAGE_$(PKG_NAME)_INCLUDE_Trojan
 	bool "Include Trojan"
@@ -31,6 +35,7 @@ endef
 PKG_CONFIG_DEPENDS:= \
 	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_V2ray_plugin \
 	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_V2ray \
+	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_Xray \
 	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_Trojan \
 	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_Kcptun \
 	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_ShadowsocksR_Server
@@ -41,10 +46,11 @@ define Package/luci-app-vssr
 	SUBMENU:=3. Applications
 	TITLE:=A New SS/SSR/V2Ray/Trojan LuCI interface
 	PKGARCH:=all
-	DEPENDS:=+shadowsocksr-libev-alt +ipset +ip-full +iptables-mod-tproxy +dnsmasq-full +coreutils +coreutils-base64 +bash +pdnsd-alt +wget +luasocket +coreutils-nohup +lua-maxminddb \
+	DEPENDS:=+shadowsocksr-libev-alt +ipset +ip-full +iptables-mod-tproxy +dnsmasq-full +coreutils +coreutils-base64 +bash +pdnsd-alt +wget +luasocket +lua-maxminddb \
 			+shadowsocks-libev-ss-local +shadowsocksr-libev-ssr-local +shadowsocks-libev-ss-redir +simple-obfs \
 			+PACKAGE_$(PKG_NAME)_INCLUDE_V2ray_plugin:v2ray-plugin \
 			+PACKAGE_$(PKG_NAME)_INCLUDE_V2ray:v2ray \
+			+PACKAGE_$(PKG_NAME)_INCLUDE_Xray:xray \
 			+PACKAGE_$(PKG_NAME)_INCLUDE_Trojan:trojan \
 			+PACKAGE_$(PKG_NAME)_INCLUDE_Trojan:ipt2socks \
 			+PACKAGE_$(PKG_NAME)_INCLUDE_Kcptun:kcptun-client \
