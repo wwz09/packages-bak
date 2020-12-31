@@ -47,9 +47,6 @@ local auto_switch = api.uci_get_type("auto_switch", "enable", 0)
 			var proto = "udp";
 			var num = <%=udp_node_num%>;
 			if (i == 0) {
-				if (<%=auto_switch%> > 0) {
-					continue;
-				}
 				proto = "tcp";
 				num = <%=tcp_node_num%>;
 			}
@@ -64,15 +61,17 @@ local auto_switch = api.uci_get_type("auto_switch", "enable", 0)
 						var v = document.getElementById(dom_id + "-" + node_select_value);
 						node_select.title = v.text;
 						
-						var new_input = document.createElement("input");
-						new_input.setAttribute("class", "cbi-button cbi-button-edit");
-						new_input.setAttribute("type", "button");
-						new_input.setAttribute("value", "<%:Edit%>");
-						new_input.setAttribute("alt", "<%:Edit%>");
-						new_input.setAttribute("title", "<%:Edit%>");
-						new_input.setAttribute("onclick","location.href='" + '<%=url([[admin]], [[services]], [[passwall]], [[node_config]])%>' + "/" + node_select_value + "'");
+						var new_a = document.createElement("a");
+						new_a.innerHTML = "<%:Edit%>";
+						new_a.href = "#";
+						new_a.setAttribute("onclick", "location.href='" + '<%=url([[admin]], [[services]], [[passwall]], [[node_config]])%>' + "/" + node_select_value + "'");
 						
-						node_select.outerHTML = node_select.outerHTML + "&nbsp&nbsp" + new_input.outerHTML;
+						var log_a = document.createElement("a");
+						log_a.innerHTML = "<%:Log%>";
+						log_a.href = "#";
+						log_a.setAttribute("onclick", "window.open('" + '<%=url([[admin]], [[services]], [[passwall]], [[get_redir_log]])%>' + "?proto=" + proto + "&index=" + index + "', '_blank')");
+						
+						node_select.outerHTML = node_select.outerHTML + "&nbsp&nbsp" + new_a.outerHTML + "&nbsp&nbsp" + log_a.outerHTML;
 						//node_select.parentNode.insertBefore(new_a, node_select.nextSibling);
 					}
 				}
@@ -105,16 +104,13 @@ local auto_switch = api.uci_get_type("auto_switch", "enable", 0)
 				var v = document.getElementById(dom_id + "-" + node_select_value);
 				node_select.title = v.text;
 				
-				var new_input = document.createElement("input");
-				new_input.setAttribute("class", "cbi-button cbi-button-edit");
-				new_input.setAttribute("type", "button");
-				new_input.setAttribute("value", "<%:Edit%>");
-				new_input.setAttribute("alt", "<%:Edit%>");
-				new_input.setAttribute("title", "<%:Edit%>");
-				new_input.setAttribute("onclick","location.href='" + '<%=url([[admin]], [[services]], [[passwall]], [[node_config]])%>' + "/" + node_select_value + "'");
+				var new_a = document.createElement("a");
+				new_a.innerHTML = "<%:Edit%>";
+				new_a.href = "#";
+				new_a.setAttribute("onclick","location.href='" + '<%=url([[admin]], [[services]], [[passwall]], [[node_config]])%>' + "/" + node_select_value + "'");
 				
-				node_select.outerHTML = node_select.outerHTML + "&nbsp&nbsp" + new_input.outerHTML;
-				//node_select.parentNode.insertBefore(new_input, node_select.nextSibling);
+				node_select.outerHTML = node_select.outerHTML + "&nbsp&nbsp" + new_a.outerHTML;
+				//node_select.parentNode.insertBefore(new_a, node_select.nextSibling);
 			}
 		}
 	}
