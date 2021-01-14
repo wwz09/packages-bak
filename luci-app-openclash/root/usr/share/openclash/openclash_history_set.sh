@@ -16,7 +16,7 @@ urlencode() {
     if [ "$#" -eq "1" ]; then
        data=$(curl -s -o /dev/null -w %{url_effective} --get --data-urlencode "$1" "")
        if [ ! -z "$data" ]; then
-           echo "${data##/?}"
+          echo "$(echo ${data##/?} |sed 's/\//%2f/g' |sed 's/:/%3a/g' |sed 's/?/%3f/g' |sed 's/(/%28/g' |sed 's/)/%29/g' |sed 's/\^/%5e/g' |sed 's/=/%3d/g' |sed 's/|/%7c/g')"
        fi
     fi
 }
@@ -36,12 +36,18 @@ restore_history() {
       GROUP_STATE_NUM=$(expr "$GROUP_STATE_NUM" + 1)
       GROUP_STATE=$(GROUP_STATE "$GROUP_NAME")
    done
-   curl -m 5 --retry 2 -H "Authorization: Bearer ${SECRET}" -H "Content-Type:application/json" -X PUT -d '{"name":"'"$NOW_NAME"'"}' http://"$LAN_IP":"$PORT"/proxies/"$GROUP_NAME" >/dev/null 2>&1
+   curl -m 5 --retry 2 -H "Authorization: Bearer ${SECRET}" -H "Content-Type:application/json" -X PUT -d '{"name":"'"$NOW_NAME"'"}' http://"$LAN_IP":"$PORT"/proxies/"$GROUP_NAME" >> "$LOG_FILE"
 }
 
 close_all_conection() {
 	curl -m 5 --retry 2 -H "Authorization: Bearer ${SECRET}" -H "Content-Type:application/json" -X DELETE http://"$LAN_IP":"$PORT"/connections >/dev/null 2>&1
 }
+
+if [ -z "$CONFIG_FILE" ] || [ ! -f "$CONFIG_FILE" ]; then
+   CONFIG_FILE=$(uci get openclash.config.config_path 2>/dev/null)
+   CONFIG_NAME=$(echo "$CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
+   HISTORY_PATH="/etc/openclash/history/$CONFIG_NAME"
+fi
 
 if [ -s "$HISTORY_PATH" ] && [ ! -z "$(pidof clash)" ]; then
    cat "$HISTORY_PATH" |while read -r line
