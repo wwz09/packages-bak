@@ -10,6 +10,7 @@ TMP_PATH=/var/etc/$CONFIG
 TMP_BIN_PATH=$TMP_PATH/bin
 TMP_ID_PATH=$TMP_PATH/id
 TMP_PORT_PATH=$TMP_PATH/port
+TMP_ROUTE_PATH=$TMP_PATH/route
 LOCK_FILE=/var/lock/$CONFIG.lock
 LOG_FILE=/var/log/$CONFIG.log
 APP_PATH=/usr/share/$CONFIG
@@ -210,6 +211,26 @@ gen_dnsmasq_items() {
 	'
 }
 
+gen_dnsmasq_fake_items() {
+	local fwd_dns="1.2.3.4"
+	local outf=${1}; shift 1
+
+	awk -v fwd_dns="${fwd_dns}" -v outf="${outf}" '
+		BEGIN {
+			if(outf == "") outf="/dev/stdout";
+			split(fwd_dns, dns, ","); setdns=length(dns)>0;
+			if(setdns) for(i in dns) if(length(dns[i])==0) delete dns[i];
+			fail=1;
+		}
+		! /^$/&&!/^#/ {
+			fail=0
+			if(! setdns) {printf("address=%s\n", $0) >>outf; next;}
+			if(setdns) for(i in dns) printf("address=/.%s/%s\n", $0, dns[i]) >>outf;
+		}
+		END {fflush(outf); close(outf); exit(fail);}
+	'
+}
+
 check_port_exists() {
 	port=$1
 	protocol=$2
@@ -303,9 +324,9 @@ load_config() {
 	DNS_MODE=$(config_t_get global dns_mode pdnsd)
 	DNS_FORWARD=$(config_t_get global dns_forward 8.8.4.4:53 | sed 's/:/#/g')
 	DNS_CACHE=$(config_t_get global dns_cache 0)
-	LOCAL_DNS=$(config_t_get global up_china_dns default | sed 's/:/#/g')
+	LOCAL_DNS="default"
 	if [ "${LOCAL_DNS}" = "default" ]; then
-		DEFAULT_DNS=$(uci show dhcp | grep "@dnsmasq" | grep ".server=" | awk -F '=' '{print $2}' | sed "s/'//g" | tr ' ' ',')
+		DEFAULT_DNS=$(uci show dhcp | grep "@dnsmasq" | grep "\.server=" | awk -F '=' '{print $2}' | sed "s/'//g" | tr ' ' ',')
 		if [ -z "${DEFAULT_DNS}" ]; then
 			DEFAULT_DNS=$(echo -n $(sed -n 's/^nameserver[ \t]*\([^ ]*\)$/\1/p' "${RESOLVFILE}" | grep -v "0.0.0.0" | grep -v "127.0.0.1" | grep -v "^::$" | head -2) | tr ' ' ',')
 		fi
@@ -313,7 +334,8 @@ load_config() {
 		IS_DEFAULT_DNS=1
 	fi
 	PROXY_IPV6=$(config_t_get global_forwarding proxy_ipv6 0)
-	mkdir -p /var/etc $TMP_PATH $TMP_BIN_PATH $TMP_ID_PATH $TMP_PORT_PATH
+	export XRAY_LOCATION_ASSET=$(config_t_get global_rules xray_location_asset "/usr/share/xray/")
+	mkdir -p /var/etc $TMP_PATH $TMP_BIN_PATH $TMP_ID_PATH $TMP_PORT_PATH $TMP_ROUTE_PATH
 	return 0
 }
 
@@ -345,7 +367,7 @@ run_socks() {
 		msg="某种原因，此 Socks 服务的相关配置已失联，启动中止！"
 	fi
 	
-	if [ "$type" == "xray" ] && ([ -n "$(config_n_get $node balancing_node)" ] || [ "$(config_n_get $node default_node)" != "nil" ]); then
+	if [ "$type" == "xray" ] && ([ -n "$(config_n_get $node balancing_node)" ] || [ "$(config_n_get $node default_node)" != "_direct" -a "$(config_n_get $node default_node)" != "_blackhole" ]); then
 		unset msg
 	fi
 
@@ -579,7 +601,7 @@ run_redir() {
 				[ "$tcp_node_http" = "1" ] && {
 					http_port=$tcp_node_http_port
 				}
-				run_socks TCP $TCP_NODE "0.0.0.0" $port $config_file $http_port $http_config_file
+				run_socks TCP $node "0.0.0.0" $port $config_file $http_port $http_config_file
 			}
 		}
 	;;
@@ -595,8 +617,36 @@ node_switch() {
 		local log_file=$TMP_PATH/${1}.log
 		eval current_port=\$${1}_REDIR_PORT
 		local port=$(cat $TMP_PORT_PATH/${1})
+		
+		local ids=$(uci show $CONFIG | grep "=socks" | awk -F '.' '{print $2}' | awk -F '=' '{print $1}')
+		for id in $ids; do
+			[ "$(config_n_get $id enabled 0)" == "0" ] && continue
+			[ "$(config_n_get $id node nil)" != "tcp" ] && continue
+			local socks_port=$(config_n_get $id port)
+			local http_port=$(config_n_get $id http_port 0)
+			top -bn1 | grep -E "$TMP_PATH" | grep -i "SOCKS" | grep "$id" | grep -v "grep" | awk '{print $1}' | xargs kill -9 >/dev/null 2>&1
+			tcp_node_socks=1
+			tcp_node_socks_port=$socks_port
+			tcp_node_socks_id=$id
+			[ "$http_port" != "0" ] && {
+				tcp_node_http=1
+				tcp_node_http_port=$http_port
+				tcp_node_http_id=$id
+			}
+			break
+		done
+		
 		run_redir $node "0.0.0.0" $port $config_file $1 $log_file
 		echo $node > $TMP_ID_PATH/${1}
+		
+		[ "$1" = "TCP" ] && {
+			[ "$(config_t_get global udp_node nil)" = "tcp_" ] && {
+				top -bn1 | grep -E "$TMP_PATH" | grep -i "UDP" | grep -v "grep" | awk '{print $1}' | xargs kill -9 >/dev/null 2>&1
+				UDP_NODE=$node
+				start_redir UDP
+			}
+		}
+		
 		#local node_net=$(echo $1 | tr 'A-Z' 'a-z')
 		#uci set $CONFIG.@global[0].${node_net}_node=$node
 		#uci commit $CONFIG
@@ -658,10 +708,10 @@ clean_log() {
 
 clean_crontab() {
 	touch /etc/crontabs/root
-	#sed -i "/${CONFIG}/d" /etc/crontabs/root >/dev/null 2>&1 &
-	sed -i "/$(echo "/etc/init.d/${CONFIG}" | sed 's#\/#\\\/#g')/d" /etc/crontabs/root >/dev/null 2>&1 &
-	sed -i "/$(echo "lua ${APP_PATH}/rule_update.lua log" | sed 's#\/#\\\/#g')/d" /etc/crontabs/root >/dev/null 2>&1 &
-	sed -i "/$(echo "lua ${APP_PATH}/subscribe.lua start log" | sed 's#\/#\\\/#g')/d" /etc/crontabs/root >/dev/null 2>&1 &
+	#sed -i "/${CONFIG}/d" /etc/crontabs/root >/dev/null 2>&1
+	sed -i "/$(echo "/etc/init.d/${CONFIG}" | sed 's#\/#\\\/#g')/d" /etc/crontabs/root >/dev/null 2>&1
+	sed -i "/$(echo "lua ${APP_PATH}/rule_update.lua log" | sed 's#\/#\\\/#g')/d" /etc/crontabs/root >/dev/null 2>&1
+	sed -i "/$(echo "lua ${APP_PATH}/subscribe.lua start log" | sed 's#\/#\\\/#g')/d" /etc/crontabs/root >/dev/null 2>&1
 }
 
 start_crontab() {
@@ -721,25 +771,11 @@ start_crontab() {
 
 stop_crontab() {
 	clean_crontab
-	ps | grep "$APP_PATH/test.sh" | grep -v "grep" | awk '{print $1}' | xargs kill -9 >/dev/null 2>&1 &
 	/etc/init.d/cron restart
 	#echolog "清除定时执行命令。"
 }
 
 start_dns() {
-	if [ "${LOCAL_DNS}" = "xray_doh" ]; then
-		_doh=$(config_t_get global up_china_dns_doh "https://dns.alidns.com/dns-query,223.5.5.5")
-		_doh_url=$(echo $_doh | awk -F ',' '{print $1}')
-		_doh_host_port=$(echo $_doh_url | sed "s/https:\/\///g" | awk -F '/' '{print $1}')
-		_doh_host=$(echo $_doh_host_port | awk -F ':' '{print $1}')
-		_doh_port=$(echo $_doh_host_port | awk -F ':' '{print $2}')
-		_doh_bootstrap=$(echo $_doh | cut -d ',' -sf 2-)
-		lua $API_GEN_XRAY -dns_listen_port "${LOCAL_DOH_PORT}" -dns_server "${_doh_bootstrap}" -doh_url "${_doh_url}" -doh_host "${_doh_host}" > $TMP_PATH/DNS1.json
-		ln_start_bin "$(first_type $(config_t_get global_app xray_file) xray)" xray $TMP_PATH/DNS1.log -config="$TMP_PATH/DNS1.json"
-		LOCAL_DNS="127.0.0.1#${LOCAL_DOH_PORT}"
-		unset _doh _doh_url _doh_bootstrap
-	fi
-
 	local pdnsd_forward other_port msg
 	dns_listen_port=${DNS_PORT}
 	pdnsd_forward=${DNS_FORWARD}
@@ -812,14 +848,18 @@ start_dns() {
 		TUN_DNS=${DNS_FORWARD}
 		echolog "  - 域名解析：直接使用UDP节点请求DNS（$TUN_DNS）"
 	;;
+	fake_ip)
+		TUN_DNS="1.2.3.4"
+		echolog "  - 域名解析：使用FakeIP方案..."
+	;;
 	custom)
 		custom_dns=$(config_t_get global custom_dns)
 		TUN_DNS="$(echo ${custom_dns} | sed 's/:/#/g')"
-		echolog "  - 域名解析：直接使用UDP协议自定义DNS（$TUN_DNS）解析..."
+		echolog "  - 域名解析：使用UDP协议自定义DNS（$TUN_DNS）解析..."
 	;;
 	esac
 	
-	[ -n "$chnlist" ] && [ "$DNS_MODE" != "custom" ] && {
+	[ -n "$chnlist" ] && [ "$DNS_MODE" != "custom" ] && [ "$DNS_MODE" != "fake_ip" ] && {
 		[ -f "${RULES_PATH}/chnlist" ] && cp -a "${RULES_PATH}/chnlist" "${TMP_PATH}/chnlist"
 		[ -n "$(first_type chinadns-ng)" ] && {
 			echolog "发现ChinaDNS-NG，将启动。"
@@ -880,62 +920,82 @@ add_dnsmasq() {
 		#始终用国内DNS解析节点域名
 		fwd_dns="${LOCAL_DNS}"
 		servers=$(uci show "${CONFIG}" | grep ".address=" | cut -d "'" -f 2)
-		hosts_foreach "servers" host_from_url | grep -v "google.c" | grep '[a-zA-Z]$' | sort -u | gen_dnsmasq_items "vpsiplist" "${fwd_dns}" "${TMP_DNSMASQ_PATH}/00-vpsiplist_host.conf"
+		hosts_foreach "servers" host_from_url | grep -v "google.c" | grep '[a-zA-Z]$' | sort -u | gen_dnsmasq_items "vpsiplist,vpsiplist6" "${fwd_dns}" "${TMP_DNSMASQ_PATH}/00-vpsiplist_host.conf"
 		echolog "  - [$?]节点列表中的域名(vpsiplist)：${fwd_dns:-默认}"
 
 		#始终用国内DNS解析直连（白名单）列表
 		fwd_dns="${LOCAL_DNS}"
 		[ -n "$CHINADNS_NG" ] && unset fwd_dns
-		sort -u "${RULES_PATH}/direct_host" | gen_dnsmasq_items "whitelist" "${fwd_dns}" "${TMP_DNSMASQ_PATH}/01-direct_host.conf"
+		sort -u "${RULES_PATH}/direct_host" | gen_dnsmasq_items "whitelist,whitelist_6" "${fwd_dns}" "${TMP_DNSMASQ_PATH}/01-direct_host.conf"
 		echolog "  - [$?]域名白名单(whitelist)：${fwd_dns:-默认}"
 		
 		#始终使用远程DNS解析代理（黑名单）列表
-		fwd_dns="${TUN_DNS}"
-		[ -n "$CHINADNS_NG" ] && fwd_dns="${china_ng_gfw}"
-		[ -n "$CHINADNS_NG" ] && unset fwd_dns
-		sort -u "${RULES_PATH}/proxy_host" | gen_dnsmasq_items "blacklist" "${fwd_dns}" "${TMP_DNSMASQ_PATH}/99-proxy_host.conf"
-		echolog "  - [$?]代理域名表(blacklist)：${fwd_dns:-默认}"
+		if [ "${DNS_MODE}" = "fake_ip" ]; then
+			sort -u "${RULES_PATH}/proxy_host" | gen_dnsmasq_fake_items "${TMP_DNSMASQ_PATH}/99-proxy_host.conf"
+		else
+			fwd_dns="${TUN_DNS}"
+			[ -n "$CHINADNS_NG" ] && fwd_dns="${china_ng_gfw}"
+			[ -n "$CHINADNS_NG" ] && unset fwd_dns
+			sort -u "${RULES_PATH}/proxy_host" | gen_dnsmasq_items "blacklist,blacklist_6" "${fwd_dns}" "${TMP_DNSMASQ_PATH}/99-proxy_host.conf"
+			echolog "  - [$?]代理域名表(blacklist)：${fwd_dns:-默认}"
+		fi
 		
 		#如果开启了通过代理订阅
 		[ "$(config_t_get global_subscribe subscribe_proxy 0)" = "1" ] && {
 			fwd_dns="${TUN_DNS}"
 			[ -n "$CHINADNS_NG" ] && fwd_dns="${china_ng_gfw}"
-			items=$(get_enabled_anonymous_secs "@subscribe_list")
-			for item in ${items}; do
-				host_from_url "$(config_n_get ${item} url)" | gen_dnsmasq_items "blacklist" "${fwd_dns}" "${TMP_DNSMASQ_PATH}/99-subscribe.conf"
+			for item in $(get_enabled_anonymous_secs "@subscribe_list"); do
+				if [ "${DNS_MODE}" = "fake_ip" ]; then
+					host_from_url "$(config_n_get ${item} url)" | gen_dnsmasq_fake_items "${TMP_DNSMASQ_PATH}/99-subscribe.conf"
+				else
+					host_from_url "$(config_n_get ${item} url)" | gen_dnsmasq_items "blacklist,blacklist_6" "${fwd_dns}" "${TMP_DNSMASQ_PATH}/99-subscribe.conf"
+				fi
 			done
-			echolog "  - [$?]节点订阅域名(blacklist)：${fwd_dns:-默认}"
+			[ "${DNS_MODE}" != "fake_ip" ] && echolog "  - [$?]节点订阅域名(blacklist)：${fwd_dns:-默认}"
 		}
 		
 		#分流规则
 		[ "$(config_n_get $TCP_NODE protocol)" = "_shunt" ] && {
 			fwd_dns="${TUN_DNS}"
-			local default_node_id=$(config_n_get $TCP_NODE default_node nil)
+			local default_node_id=$(config_n_get $TCP_NODE default_node _direct)
 			local shunt_ids=$(uci show $CONFIG | grep "=shunt_rules" | awk -F '.' '{print $2}' | awk -F '=' '{print $1}')
 			for shunt_id in $shunt_ids; do
 				local shunt_node_id=$(config_n_get $TCP_NODE ${shunt_id} nil)
-				[ "$shunt_node_id" = "nil" ] && continue
+				if [ "$shunt_node_id" = "nil" ] || [ "$shunt_node_id" = "_default" ] || [ "$shunt_node_id" = "_direct" ] || [ "$shunt_node_id" = "_blackhole" ]; then
+					continue
+				fi
 				local shunt_node=$(config_n_get $shunt_node_id address nil)
 				[ "$shunt_node" = "nil" ] && continue
-				config_n_get $shunt_id domain_list | grep -v 'regexp:\|geosite:\|ext:' | sed 's/domain:\|full:\|//g' | tr -s "\r\n" "\n" | sort -u | gen_dnsmasq_items "shuntlist" "${fwd_dns}" "${TMP_DNSMASQ_PATH}/998-shunt_host.conf"
+				if [ "${DNS_MODE}" = "fake_ip" ]; then
+					config_n_get $shunt_id domain_list | grep -v 'regexp:\|geosite:\|ext:' | sed 's/domain:\|full:\|//g' | tr -s "\r\n" "\n" | sort -u | gen_dnsmasq_fake_items "${TMP_DNSMASQ_PATH}/998-shunt_host.conf"
+				else
+					config_n_get $shunt_id domain_list | grep -v 'regexp:\|geosite:\|ext:' | sed 's/domain:\|full:\|//g' | tr -s "\r\n" "\n" | sort -u | gen_dnsmasq_items "shuntlist,shuntlist6" "${fwd_dns}" "${TMP_DNSMASQ_PATH}/998-shunt_host.conf"
+				fi
 			done
-			echolog "  - [$?]Xray分流规则(shuntlist)：${fwd_dns:-默认}"
+			[ "${DNS_MODE}" != "fake_ip" ] && echolog "  - [$?]Xray分流规则(shuntlist)：${fwd_dns:-默认}"
 		}
 
 		#如果没有使用回国模式
 		if [ -z "${returnhome}" ]; then
-			fwd_dns="${TUN_DNS}"
-			[ -n "$CHINADNS_NG" ] && fwd_dns="${china_ng_gfw}"
-			[ -n "$CHINADNS_NG" ] && unset fwd_dns
 			[ ! -f "${TMP_PATH}/gfwlist.txt" ] && sed -n 's/^ipset=\/\.\?\([^/]*\).*$/\1/p' "${RULES_PATH}/gfwlist.conf" | sort -u > "${TMP_PATH}/gfwlist.txt"
-			sort -u "${TMP_PATH}/gfwlist.txt" | gen_dnsmasq_items "gfwlist" "${fwd_dns}" "${TMP_DNSMASQ_PATH}/999-gfwlist.conf"
-			#sort -u "${TMP_PATH}/gfwlist.txt" | gen_dnsmasq_items "gfwlist,gfwlist6" "${fwd_dns}" "${TMP_DNSMASQ_PATH}/999-gfwlist.conf"
-			echolog "  - [$?]防火墙域名表(gfwlist)：${fwd_dns:-默认}"
+			if [ "${DNS_MODE}" = "fake_ip" ]; then
+				sort -u "${TMP_PATH}/gfwlist.txt" | gen_dnsmasq_fake_items "${TMP_DNSMASQ_PATH}/999-gfwlist.conf"
+			else
+				fwd_dns="${TUN_DNS}"
+				[ -n "$CHINADNS_NG" ] && fwd_dns="${china_ng_gfw}"
+				[ -n "$CHINADNS_NG" ] && unset fwd_dns
+				sort -u "${TMP_PATH}/gfwlist.txt" | gen_dnsmasq_items "gfwlist,gfwlist6" "${fwd_dns}" "${TMP_DNSMASQ_PATH}/999-gfwlist.conf"
+				echolog "  - [$?]防火墙域名表(gfwlist)：${fwd_dns:-默认}"
+			fi
 		else
 			#回国模式
-			fwd_dns="${TUN_DNS}"
-			sort -u "${RULES_PATH}/chnlist" | gen_dnsmasq_items "chnroute" "${fwd_dns}" "${TMP_DNSMASQ_PATH}/02-chinalist_host.conf"
-			echolog "  - [$?]中国域名表(chnroute)：${fwd_dns:-默认}"
+			if [ "${DNS_MODE}" = "fake_ip" ]; then
+				sort -u "${RULES_PATH}/chnlist" | gen_dnsmasq_fake_items "${TMP_DNSMASQ_PATH}/02-chinalist_host.conf"
+			else
+				fwd_dns="${TUN_DNS}"
+				sort -u "${RULES_PATH}/chnlist" | gen_dnsmasq_items "chnroute,chnroute6" "${fwd_dns}" "${TMP_DNSMASQ_PATH}/02-chinalist_host.conf"
+				echolog "  - [$?]中国域名表(chnroute)：${fwd_dns:-默认}"
+			fi
 		fi
 	fi
 	
@@ -1035,6 +1095,44 @@ del_dnsmasq() {
 	rm -rf $TMP_DNSMASQ_PATH
 }
 
+add_ip2route() {
+	local ip=$(get_host_ip "ipv4" $1)
+	[ -z "$ip" ] && {
+		echolog "  - 无法解析${1}，路由表添加失败！"
+		return 1
+	}
+	local remarks="${1}"
+	[ "$remarks" != "$ip" ] && remarks="${1}(${ip})"
+	local interface=$2
+	local retries=5
+	local failcount=0
+	while [ "$failcount" -lt $retries ]; do
+		unset msg
+		ip route show dev ${interface} >/dev/null 2>&1
+		if [ $? -ne 0 ]; then
+			let "failcount++"
+			echolog "  - 找不到出口接口：$interface，1分钟后再重试(${failcount}/${retries})，${ip}"
+			[ "$failcount" -ge $retries ] && return 1
+			sleep 1m
+		else
+			route add -host ${ip} dev ${interface} >/dev/null 2>&1
+			echolog "  - ${remarks}添加路由表${interface}接口成功！"
+			echo "$ip" >> $TMP_ROUTE_PATH/${interface}
+			break
+		fi
+	done
+}
+
+delete_ip2route() {
+	[ -d "${TMP_ROUTE_PATH}" ] && {
+		for interface in $(ls ${TMP_ROUTE_PATH}); do
+			for ip in $(cat ${TMP_ROUTE_PATH}/${interface}); do
+				route del -host ${ip} dev ${interface} >/dev/null 2>&1
+			done
+		done
+	}
+}
+
 start_haproxy() {
 	local haproxy_path haproxy_file item items lport sort_items
 
@@ -1109,28 +1207,10 @@ start_haproxy() {
 			    server $bip:$bport $bip:$bport weight $lbweight check inter 1500 rise 1 fall 3 $bbackup
 		EOF
 
-		#暂时不开启此功能，以后抽时间改成后台执行，防止卡luci。
-:<<!
 		if [ "$export" != "0" ]; then
-			unset msg
-			failcount=0
-			while [ "$failcount" -lt "3" ]; do
-				ip route show dev ${export} >/dev/null 2>&1
-				if [ $? -ne 0 ]; then
-					let "failcount++"
-					echolog "  - 找不到出口接口：$export，1分钟后再重试(${failcount}/3)，${bip}"
-					[ "$failcount" -ge 3 ] && exit 0
-					sleep 1m
-				else
-					route add -host ${bip} dev ${export}
-					msg="[$?] 从 ${export} 接口路由，"
-					echo "$bip" >>/tmp/balancing_ip
-					break
-				fi
-			done
+			add_ip2route ${bip} ${export} > /dev/null 2>&1 &
 		fi
-		echolog "  | - ${msg}出口节点：${bip}:${bport}，权重：${lbweight}"
-!
+		echolog "  | - 出口节点：${bip}:${bport}，权重：${lbweight}"
 	done
 
 	# 控制台配置
@@ -1156,7 +1236,7 @@ start_haproxy() {
 }
 
 kill_all() {
-	kill -9 $(pidof "$@") >/dev/null 2>&1 &
+	kill -9 $(pidof "$@") >/dev/null 2>&1
 }
 
 force_stop() {
@@ -1195,7 +1275,15 @@ restart_dnsmasq() {
 }
 
 boot() {
-	[ "$ENABLED" == 1 ] && start
+	[ "$ENABLED" == 1 ] && {
+		local delay=$(config_t_get global_delay start_delay 1)
+		if [ "$delay" -gt 0 ]; then
+			echolog "执行启动延时 $delay 秒后再启动!"
+			sleep $delay && start >/dev/null 2>&1 &
+		else
+			start
+		fi
+	}
 	return 0
 }
 
@@ -1226,12 +1314,12 @@ stop() {
 	set_lock
 	clean_log
 	source $APP_PATH/iptables.sh stop
+	delete_ip2route
 	kill_all v2ray-plugin obfs-local
-	top -bn1 | grep -v "grep" | grep $CONFIG/test.sh | awk '{print $1}' | xargs kill -9 >/dev/null 2>&1 &
-	top -bn1 | grep -v "grep" | grep $CONFIG/monitor.sh | awk '{print $1}' | xargs kill -9 >/dev/null 2>&1 &
-	top -bn1 | grep -v -E "grep|${TMP_PATH}_server" | grep -E "$TMP_PATH" | awk '{print $1}' | xargs kill -9 >/dev/null 2>&1 &
-	top -bn1 | grep -v "grep" | grep "sleep 1m" | awk '{print $1}' | xargs kill -9 >/dev/null 2>&1 &
+	top -bn1 | grep -v "grep" | grep "sleep" | grep -E "9s|58s" | awk '{print $1}' | xargs kill -9 >/dev/null 2>&1
+	top -bn1 | grep -v "grep" | grep -v "app.sh" | grep "${CONFIG}/" | awk '{print $1}' | xargs kill -9 >/dev/null 2>&1
 	rm -rf $TMP_DNSMASQ_PATH $TMP_PATH
+	unset XRAY_LOCATION_ASSET
 	stop_crontab
 	del_dnsmasq
 	/etc/init.d/dnsmasq restart >/dev/null 2>&1
