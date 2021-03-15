@@ -20,7 +20,7 @@ uci:foreach(appname, "socks", function(s)
         else
             for k, n in pairs(nodes_table) do
                 if (s.node == n.id) then
-                    remarks = n.remarks_name; break
+                    remarks = n["remark"]; break
                 end
             end
         end
@@ -125,7 +125,7 @@ if has_xray and #nodes_table > 0 then
             o:value("_direct", translate("Direct Connection"))
             o:value("_blackhole", translate("Blackhole"))
             for k1, v1 in pairs(normal_list) do
-                o:value(v1.id, v1.remarks_name)
+                o:value(v1.id, v1["remark"])
             end
             o.cfgvalue = function(self, section)
                 return m:get(v.id, id) or "nil"
@@ -141,7 +141,7 @@ if has_xray and #nodes_table > 0 then
         o:value("_direct", translate("Direct Connection"))
         o:value("_blackhole", translate("Blackhole"))
         for k1, v1 in pairs(normal_list) do
-            o:value(v1.id, v1.remarks_name)
+            o:value(v1.id, v1["remark"])
         end
         o.cfgvalue = function(self, section)
             return m:get(v.id, id) or "nil"
@@ -155,7 +155,7 @@ if has_xray and #nodes_table > 0 then
         o:depends("tcp_node", v.id)
         o:value("nil", translate("Close"))
         for k1, v1 in pairs(normal_list) do
-            o:value(v1.id, v1.remarks_name)
+            o:value(v1.id, v1["remark"])
         end
         o.cfgvalue = function(self, section)
             return m:get(v.id, id) or "nil"
@@ -257,9 +257,7 @@ o:depends({dns_mode = "pdnsd"})
 o = s:taboption("DNS", Button, "clear_ipset", translate("Clear IPSET"), translate("Try this feature if the rule modification does not take effect."))
 o.inputstyle = "remove"
 function o.write(e, e)
-    luci.sys.call("/etc/init.d/" .. appname .. " stop")
-    luci.sys.call("/usr/share/" .. appname .. "/iptables.sh flush_ipset")
-    luci.sys.call("/etc/init.d/" .. appname .. " restart")
+    luci.sys.call("/usr/share/" .. appname .. "/iptables.sh flush_ipset > /dev/null 2>&1 &")
 end
 
 s:tab("Proxy", translate("Mode"))
@@ -372,14 +370,14 @@ if has_xray then
 end
 
 for k, v in pairs(nodes_table) do
-    tcp_node:value(v.id, v.remarks_name)
-    udp_node:value(v.id, v.remarks_name)
+    tcp_node:value(v.id, v["remark"])
+    udp_node:value(v.id, v["remark"])
     if v.type == "Socks" then
         if has_xray then
-            socks_node:value(v.id, v.remarks_name)
+            socks_node:value(v.id, v["remark"])
         end
     else
-        socks_node:value(v.id, v.remarks_name)
+        socks_node:value(v.id, v["remark"])
     end
 end
 
