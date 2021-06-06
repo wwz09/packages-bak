@@ -89,9 +89,8 @@ function _M.get_flag(remark, host)
 
     local iso_code = nil
     if (remark ~= nil) then
-        remark = string.gsub(remark, "NETWORKS", "")
         for i, v in pairs(emoji_table) do
-            if (string.find(string.lower(remark), string.lower(v)) ~= nil) then
+            if (string.find(string.lower(remark), string.lower(v))) then
                 iso_code = string.lower(iso_table[i])
                 break
             end

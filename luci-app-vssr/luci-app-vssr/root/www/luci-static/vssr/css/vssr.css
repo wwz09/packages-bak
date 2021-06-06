@@ -520,6 +520,7 @@ footer.mobile-hide {
     .modals-bg {
         position: fixed;
         z-index: 100000;
+
     }
 
     .modals {

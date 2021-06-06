@@ -28,7 +28,7 @@ test_url() {
 	local timeout=2
 	[ -n "$3" ] && timeout=$3
 	local extra_params=$4
-	status=$(/usr/bin/curl -I -o /dev/null -skL $extra_params --connect-timeout $timeout --retry $try --retry-all-errors -w %{http_code} "$url")
+	status=$(/usr/bin/curl -I -o /dev/null -skL $extra_params --connect-timeout $timeout --retry $try -w %{http_code} "$url")
 	case "$status" in
 		204|\
 		200)
@@ -50,10 +50,6 @@ test_proxy() {
 			result=1
 		else
 			result=2
-			ping -c 3 -W 1 223.5.5.5 > /dev/null 2>&1
-			[ $? -eq 0 ] && {
-				result=1
-			}
 		fi
 	fi
 	echo $result
@@ -92,13 +88,12 @@ test_auto_switch() {
 				}
 			else
 				local tmp_port=$(/usr/share/${CONFIG}/app.sh get_new_port 61080 tcp)
-				/usr/share/${CONFIG}/app.sh run_socks "auto_switch" "$main_node" "127.0.0.1" "$tmp_port" "/var/etc/${CONFIG}/test.json"
+				/usr/share/${CONFIG}/app.sh run_socks "auto_switch" "$main_node" "127.0.0.1" "$tmp_port" "/var/etc/${CONFIG}/auto_switch.json"
 				local curlx="socks5h://127.0.0.1:$tmp_port"
 			fi
-			sleep 9s
+			sleep 10s
 			proxy_status=$(test_url "https://www.google.com/generate_204" 3 3 "-x $curlx")
-			top -bn1 | grep -v "grep" | grep "/var/etc/${CONFIG}/test.json" | awk '{print $1}' | xargs kill -9 >/dev/null 2>&1
-			rm -rf "/var/etc/${CONFIG}/test.json"
+			top -bn1 | grep -v "grep" | grep "/var/etc/${CONFIG}/auto_switch.json" | awk '{print $1}' | xargs kill -9 >/dev/null 2>&1
 			if [ "$proxy_status" -eq 200 ]; then
 				#主节点正常，切换到主节点
 				echolog "自动切换检测：${TYPE}主节点正常，切换到主节点！"
@@ -130,7 +125,7 @@ test_auto_switch() {
 			fi
 		fi
 		/usr/share/${CONFIG}/app.sh node_switch ${TYPE} ${new_node}
-		sleep 9s
+		sleep 10s
 		# 切换节点后等待10秒后再检测一次，如果还是不通继续切，直到可用为止
 		status2=$(test_proxy)
 		if [ "$status2" -eq 0 ]; then
@@ -145,16 +140,12 @@ test_auto_switch() {
 }
 
 start() {
-	if [ "$(pgrep -f $CONFIG/test.sh | wc -l)" -gt 2 ]; then
-		exit 1
-	fi
 	ENABLED=$(config_t_get global enabled 0)
-	[ "$ENABLED" != 1 ] && return 1
+	[ "$ENABLED" != 1 ] && _return 1
 	ENABLED=$(config_t_get auto_switch enable 0)
-	[ "$ENABLED" != 1 ] && return 1
+	[ "$ENABLED" != 1 ] && _return 1
 	delay=$(config_t_get auto_switch testing_time 1)
-	#sleep ${delay}m
-	sleep 9s
+	sleep ${delay}m
 	while [ "$ENABLED" -eq 1 ]
 	do
 		TCP_NODE=$(config_t_get auto_switch tcp_node nil)

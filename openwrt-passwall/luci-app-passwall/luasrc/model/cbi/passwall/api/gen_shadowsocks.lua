@@ -2,9 +2,11 @@ local api = require "luci.model.cbi.passwall.api.api"
 local ucursor = require "luci.model.uci".cursor()
 local jsonc = require "luci.jsonc"
 
-local var = api.get_args(arg, {
-    "-node", "-local_addr", "-local_port", "-server_host", "-server_port", "-protocol", "-mode"
-})
+local myarg = {
+    "-node", "-local_addr", "-local_port", "-server_host", "-server_port"
+}
+
+local var = api.get_args(arg, myarg)
 
 local node_section = var["-node"]
 if not node_section then
@@ -34,9 +36,6 @@ if node.type == "SS" then
         config.plugin = node.plugin
         config.plugin_opts = node.plugin_opts or nil
     end
-
-    config.protocol = var["-protocol"]
-    config.mode = var["-mode"]
 elseif node.type == "SSR" then
     config.protocol = node.protocol
     config.protocol_param = node.protocol_param

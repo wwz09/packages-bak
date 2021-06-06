@@ -1,8 +1,6 @@
 #!/bin/sh
 
 uci -q batch <<-EOF >/dev/null
-	set dhcp.@dnsmasq[0].localuse=1
-	commit dhcp
 	delete ucitrack.@passwall[-1]
 	add ucitrack passwall
 	set ucitrack.@passwall[-1].init=passwall
@@ -27,8 +25,9 @@ uci -q batch <<-EOF >/dev/null
 	commit uhttpd
 EOF
 
-touch /etc/config/passwall_show >/dev/null 2>&1
-rm -f /tmp/luci-indexcache
-rm -rf /tmp/luci-modulecache/
-killall -HUP rpcd 2>/dev/null
+tmp=$(uci -q get passwall.@global_app[0].xray_file)
+[ -z "$tmp" ] && uci set passwall.@global_app[0].xray_file="/usr/bin/xray"
+uci commit passwall
+
+rm -rf /tmp/luci-*cache
 exit 0

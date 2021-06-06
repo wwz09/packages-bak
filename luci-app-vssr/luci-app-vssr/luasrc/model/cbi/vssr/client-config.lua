@@ -129,8 +129,7 @@ o:value('ssr', translate('ShadowsocksR'))
 if nixio.fs.access('/usr/bin/ss-redir') then
     o:value('ss', translate('Shadowsocks New Version'))
 end
-
-if nixio.fs.access('/usr/bin/xray') then
+if nixio.fs.access('/usr/bin/v2ray/v2ray') or nixio.fs.access('/usr/bin/v2ray') or nixio.fs.access('/usr/bin/xray') or nixio.fs.access('/usr/bin/xray/xray') then
     o:value('v2ray', translate('V2Ray'))
     o:value('vless', translate('VLESS'))
 end
@@ -404,12 +403,12 @@ o:depends({type = 'vless', tls = '1'})
 o:depends({type = 'xray', tls = '1'})
 
 -- Flow
-o = s:option(ListValue, 'vless_flow', translate('Flow'))
+o = s:option(Value, 'vless_flow', translate('Flow'))
 for _, v in ipairs(flows) do
     o:value(v, v)
 end
 o.rmempty = true
-o.default = 'xtls-rprx-splice'
+o.default = 'xtls-rprx-origin'
 o:depends('xtls', '1')
 
 -- [[ Mux ]]--
