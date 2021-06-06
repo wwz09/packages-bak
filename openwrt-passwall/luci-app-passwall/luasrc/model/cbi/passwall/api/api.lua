@@ -54,13 +54,26 @@ function get_args(arg, myarg)
     return var
 end
 
+function is_normal_node(e)
+    if e and e.type and e.protocol and (e.protocol == "_balancing" or e.protocol == "_shunt") then
+        return false
+    end
+    return true
+end
+
+function is_special_node(e)
+    return is_normal_node(e) == false
+end
+
 function get_valid_nodes()
+    local nodes_ping = uci_get_type("global_other", "nodes_ping") or ""
     local nodes = {}
     uci:foreach(appname, "nodes", function(e)
+        e.id = e[".name"]
         if e.type and e.remarks then
             if e.protocol and (e.protocol == "_balancing" or e.protocol == "_shunt") then
-                e.remarks_name = "%s：[%s] " % {i18n.translatef(e.type .. e.protocol), e.remarks}
-                e.node_type = "special"
+                e["remark"] = "%s：[%s] " % {i18n.translatef(e.type .. e.protocol), e.remarks}
+                e["node_type"] = "special"
                 nodes[#nodes + 1] = e
             end
             if e.port and e.address then
@@ -80,9 +93,15 @@ function get_valid_nodes()
                         type2 = type2 .. " " .. protocol
                     end
                     if datatypes.ip6addr(address) then address2 = "[" .. address .. "]" end
-                    e.remarks_name = "%s：[%s] %s:%s" % {type2, e.remarks, address2, e.port}
+                    e["remark"] = "%s：[%s]" % {type2, e.remarks}
+                    if nodes_ping:find("info") then
+                        e["remark"] = "%s：[%s] %s:%s" % {type2, e.remarks, address2, e.port}
+                    end
                     if e.use_kcp and e.use_kcp == "1" then
-                    e.remarks_name = "%s+%s：[%s] %s" % {type2, "Kcptun", e.remarks, address2}
+                        e["remark"] = "%s+%s：[%s]" % {type2, "Kcptun", e.remarks}
+                        if nodes_ping:find("info") then
+                            e["remark"] = "%s+%s：[%s] %s" % {type2, "Kcptun", e.remarks, address2}
+                        end
                     end
                     e.node_type = "normal"
                     nodes[#nodes + 1] = e
@@ -158,7 +177,25 @@ function get_customed_path(e)
 end
 
 function is_finded(e)
-    return luci.sys.exec('type -t -p "%s/%s" "%s"' % {get_customed_path(e), e, e}) ~= "" and true or false
+    return luci.sys.exec('type -t -p "/bin/%s" -p "%s" "%s"' % {e, get_customed_path(e), e}) ~= "" and true or false
+end
+
+
+function clone(org)
+    local function copy(org, res)
+        for k,v in pairs(org) do
+            if type(v) ~= "table" then
+                res[k] = v;
+            else
+                res[k] = {};
+                copy(v, res[k])
+            end
+        end
+    end
+ 
+    local res = {}
+    copy(org, res)
+    return res
 end
 
 function get_xray_path()
@@ -173,7 +210,7 @@ function get_xray_version(file)
         if file == get_xray_path() then
             local md5 = sys.exec("echo -n $(md5sum " .. file .. " | awk '{print $1}')")
             if fs.access("/tmp/psw_" .. md5) then
-                return sys.exec("cat /tmp/psw_" .. md5)
+                return sys.exec("echo -n $(cat /tmp/psw_%s)" % md5)
             else
                 local version = sys.exec("echo -n $(%s -version | awk '{print $2}' | sed -n 1P)" % file)
                 sys.call("echo '" .. version .. "' > " .. "/tmp/psw_" .. md5)
@@ -198,7 +235,7 @@ function get_trojan_go_version(file)
         if file == get_trojan_go_path() then
             local md5 = sys.exec("echo -n $(md5sum " .. file .. " | awk '{print $1}')")
             if fs.access("/tmp/psw_" .. md5) then
-                return sys.exec("cat /tmp/psw_" .. md5)
+                return sys.exec("echo -n $(cat /tmp/psw_%s)" % md5)
             else
                 local version = sys.exec("echo -n $(%s -version | awk '{print $2}' | sed -n 1P)" % file)
                 sys.call("echo '" .. version .. "' > " .. "/tmp/psw_" .. md5)
@@ -223,7 +260,7 @@ function get_kcptun_version(file)
         if file == get_kcptun_path() then
             local md5 = sys.exec("echo -n $(md5sum " .. file .. " | awk '{print $1}')")
             if fs.access("/tmp/psw_" .. md5) then
-                return sys.exec("cat /tmp/psw_" .. md5)
+                return sys.exec("echo -n $(cat /tmp/psw_%s)" % md5)
             else
                 local version = sys.exec("echo -n $(%s -v | awk '{print $3}')" % file)
                 sys.call("echo '" .. version .. "' > " .. "/tmp/psw_" .. md5)
@@ -248,7 +285,7 @@ function get_brook_version(file)
         if file == get_brook_path() then
             local md5 = sys.exec("echo -n $(md5sum " .. file .. " | awk '{print $1}')")
             if fs.access("/tmp/psw_" .. md5) then
-                return sys.exec("cat /tmp/psw_" .. md5)
+                return sys.exec("echo -n $(cat /tmp/psw_%s)" % md5)
             else
                 local version = sys.exec("echo -n $(%s -v | awk '{print $3}')" % file)
                 sys.call("echo '" .. version .. "' > " .. "/tmp/psw_" .. md5)
@@ -330,6 +367,9 @@ end
 function compare_versions(ver1, comp, ver2)
     local table = table
 
+    if not ver1 then ver1 = "" end
+    if not ver2 then ver2 = "" end
+
     local av1 = util.split(ver1, "[%.%-]", nil, true)
     local av2 = util.split(ver2, "[%.%-]", nil, true)
 
@@ -338,8 +378,8 @@ function compare_versions(ver1, comp, ver2)
     if (max < n2) then max = n2 end
 
     for i = 1, max, 1 do
-        local s1 = av1[i] or ""
-        local s2 = av2[i] or ""
+        local s1 = tonumber(av1[i] or 0) or 0
+        local s2 = tonumber(av2[i] or 0) or 0
 
         if comp == "~=" and (s1 ~= s2) then return true end
         if (comp == "<" or comp == "<=") and (s1 < s2) then return true end
@@ -353,10 +393,10 @@ end
 function auto_get_arch()
     local arch = nixio.uname().machine or ""
     if fs.access("/usr/lib/os-release") then
-        LEDE_BOARD = sys.exec("echo -n `grep 'LEDE_BOARD' /usr/lib/os-release | awk -F '[\\042\\047]' '{print $2}'`")
+        LEDE_BOARD = sys.exec("echo -n $(grep 'LEDE_BOARD' /usr/lib/os-release | awk -F '[\\042\\047]' '{print $2}')")
     end
     if fs.access("/etc/openwrt_release") then
-        DISTRIB_TARGET = sys.exec("echo -n `grep 'DISTRIB_TARGET' /etc/openwrt_release | awk -F '[\\042\\047]' '{print $2}'`")
+        DISTRIB_TARGET = sys.exec("echo -n $(grep 'DISTRIB_TARGET' /etc/openwrt_release | awk -F '[\\042\\047]' '{print $2}')")
     end
 
     if arch == "mips" then
