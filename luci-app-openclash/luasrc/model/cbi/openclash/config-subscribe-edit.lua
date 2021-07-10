@@ -134,6 +134,14 @@ o = s:option(DynamicList, "ex_keyword", font_red..bold_on..translate("Exclude Ke
 o.description = font_red..bold_on..translate("eg: hk or tw&bgp")..bold_off..font_off
 o.rmempty = true
 
+---- de_exkey
+o = s:option(MultiValue, "de_ex_keyword", font_red..bold_on..translate("Exclude Keyword Match Default")..bold_off..font_off)
+o.rmempty = true
+o:value("过期时间")
+o:value("剩余流量")
+o:value("TG群")
+o:value("官网")
+
 local t = {
     {Commit, Back}
 }
@@ -151,7 +159,7 @@ o = a:option(Button,"Back", " ")
 o.inputtitle = translate("Back Configurations")
 o.inputstyle = "reset"
 o.write = function()
-   m.uci:revert(openclash)
+   m.uci:revert(openclash, sid)
    luci.http.redirect(m.redirect)
 end
 
