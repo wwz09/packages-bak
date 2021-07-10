@@ -8,4 +8,4 @@
 (https://github.com/xiaorouji/openwrt-passwall.git)
 
 
-(src-git wwz09 https://github.com/wwz09/openwrt-packages)
+(src-git wwz09 https://github.com/wwz09/wwz09-packages)
